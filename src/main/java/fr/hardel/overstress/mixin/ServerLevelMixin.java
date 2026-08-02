@@ -3,6 +3,7 @@ package fr.hardel.overstress.mixin;
 import fr.hardel.overstress.fakeplayer.FakePlayerManager;
 import net.minecraft.server.level.ServerLevel;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -18,8 +19,12 @@ import java.util.function.BooleanSupplier;
 @Mixin(ServerLevel.class)
 public abstract class ServerLevelMixin {
 
+    /** {@code ServerLevel.getLevel()} returns itself, which is how this hook reaches the level without casting. */
+    @Shadow
+    public abstract ServerLevel getLevel();
+
     @Inject(method = "tick", at = @At("HEAD"))
     private void overstress$tickBots(BooleanSupplier haveTime, CallbackInfo callbackInfo) {
-        FakePlayerManager.tickLevel((ServerLevel) (Object) this);
+        FakePlayerManager.tickLevel(getLevel());
     }
 }

@@ -37,6 +37,27 @@ command. From the console that is the world spawn.
 Bots are made invulnerable and given a 20 block step height on their first tick, so they walk over
 terrain instead of dying to it.
 
+## What it does not simulate
+
+The mod depends on nothing but Fabric API, so it runs on any 26.2 server, modded or not. Bots join
+through the real login path, which means mods see a genuine player join and their attachments,
+scoreboards, teams and permission checks all behave. Four things are still absent, and a measurement
+that ignores them will read too optimistic:
+
+- **Network cost is zero.** The connection drops every packet, so serialisation, compression and
+  encryption for N players never happen. On a real server that is a large share of the tick.
+- **Movement is teleportation.** Bots are placed with `snapTo`, so the whole inbound movement path is
+  skipped: no packet handling, no collision resolution, no fall damage. Anti-cheat and movement mods
+  see nothing to work with.
+- **There is no client.** A mod that sends a custom payload and waits for an answer waits forever, and
+  the `ChannelFutureListener` overload of `send` drops its listener rather than firing it. A mod that
+  blocks on that callback will hang.
+- **Profiles are offline-mode.** UUIDs are derived from the bot name, so an online-mode server or an
+  auth mod may refuse them.
+
+So it is a good instrument for world, entity and chunk load, and the wrong instrument for anything
+about networking or player input.
+
 ## Adding a scenario
 
 Scenarios live in a Fabric registry, so another mod can add one without a fork. Implement
