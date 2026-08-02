@@ -1,0 +1,28 @@
+{
+	"schemaVersion": 1,
+	"id": "overstress",
+	"version": "${version}",
+	"name": "Overstress",
+	"description": "Server load harness. /fakeplayer spawns headless bots that walk, fly, mine, fight, spawn mobs and cross dimensions; each one ticks with the level that owns it, so the load lands wherever a real player's would.",
+	"authors": [
+		"Hardel"
+	],
+	"license": "CC0-1.0",
+	"icon": "assets/overstress/icon.png",
+	"accessWidener": "overstress.accesswidener",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"fr.hardel.overstress.Overstress"
+		]
+	},
+	"mixins": [
+		"overstress.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

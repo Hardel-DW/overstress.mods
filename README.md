@@ -1,0 +1,59 @@
+# Overstress
+
+Server load harness for Minecraft 26.2 / Fabric. It spawns headless players and makes them do the
+expensive things real players do, so a server can be measured under a reproducible load instead of a
+guess. Built to stress [Leafs](../leafs-template-26.2), but it depends on nothing except Fabric API.
+
+The bots are real `ServerPlayer` instances placed through the real login path, on a connection with
+no channel: packets are dropped, so network and serialisation cost is absent from any measurement
+taken with them. They are ticked at the head of their level's tick, on whatever thread runs it, which
+is what makes the load land on the region owning them when the server is regionised.
+
+## Commands
+
+`/fakeplayer` needs permission level 2 (gamemaster).
+
+| Command | Effect |
+| --- | --- |
+| `/fakeplayer spawn <count> <spread> [scenario]` | Spawns `count` bots (1-500), each at its own draw within `spread` blocks of you on both axes (16-100000). Without `scenario`, each bot picks one at random. |
+| `/fakeplayer clear` | Disconnects every bot. |
+| `/fakeplayer list` | How many are alive. |
+
+Bots always land in the overworld, scattered around the horizontal position of whoever ran the
+command. From the console that is the world spawn.
+
+## Scenarios
+
+| Scenario | Load it produces |
+| --- | --- |
+| `overstress:idle` | Nothing at all. The baseline: what a connected player costs before it moves. |
+| `overstress:wander` | Walks one fixed diagonal and never turns. Chunk loading, cheap and steady. |
+| `overstress:elytra` | Travels 40 blocks up at flight speed. Chunk generation, fast. |
+| `overstress:mine` | Walks and breaks a block every 8 ticks. Block updates, drops, lighting. |
+| `overstress:fight` | Hunts and hits the nearest mob within 16 blocks. Entity queries and combat. |
+| `overstress:spawner` | Spawns zombies around itself up to 300 nearby. Entity tick and AI. |
+| `overstress:dimensions` | Wanders, then crosses to the next dimension every 15 seconds. Cross-level transfer. |
+
+Bots are made invulnerable and given a 20 block step height on their first tick, so they walk over
+terrain instead of dying to it.
+
+## Adding a scenario
+
+Scenarios live in a Fabric registry, so another mod can add one without a fork. Implement
+`BotScenario` and register it from your initializer, before registries freeze:
+
+```java
+Registry.register(BotScenarios.REGISTRY, Identifier.fromNamespaceAndPath("mymod", "afk_farm"), new AfkFarmScenario());
+```
+
+The command picks it up on its own: it suggests and resolves whatever is in the registry. The
+registry key is `overstress:bot_scenario`. Entries are not synced to clients, because a scenario is
+behavior that only ever runs server-side.
+
+## Build
+
+`./gradlew build`, then drop `build/libs/overstress-<version>.jar` in the server's `mods` folder.
+
+## License
+
+CC0-1.0.
