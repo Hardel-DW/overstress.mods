@@ -12,7 +12,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 
-/** Piles zombies around itself up to 300 nearby: entity tick, AI and tracking, without moving much. */
 public final class SpawnerScenario implements BotScenario {
 
     @Override

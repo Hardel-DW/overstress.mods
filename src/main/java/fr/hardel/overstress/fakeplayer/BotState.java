@@ -1,7 +1,11 @@
 package fr.hardel.overstress.fakeplayer;
 
-/** Per-bot scratchpad owned by the ticking thread; {@code scenario} is volatile because a command reassigns it. */
+import net.minecraft.util.RandomSource;
+
 public final class BotState {
+
+    public final RandomSource random = RandomSource.create();
+
     public final double spawnX;
     public final double spawnZ;
     public double heading;

@@ -10,10 +10,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.BooleanSupplier;
 
-/**
- * Bots tick with their level, on whatever thread runs it. The level tick is targeted rather than a
- * Fabric tick event because a regionised server is free to reroute such an event onto a global thread.
- */
 @Mixin(ServerLevel.class)
 public abstract class ServerLevelMixin {
 

@@ -15,10 +15,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
 
-/**
- * The scenario registry, not synced because a scenario is behavior that only ever runs server-side.
- * Another mod adds one with {@code Registry.register(REGISTRY, id, scenario)} and the command finds it.
- */
 public final class BotScenarios {
     public static final ResourceKey<Registry<BotScenario>> KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Overstress.MOD_ID, "bot_scenario"));
     public static final Registry<BotScenario> REGISTRY = FabricRegistryBuilder.create(KEY).buildAndRegister();
@@ -27,7 +23,6 @@ public final class BotScenarios {
     private BotScenarios() {
     }
 
-    /** Registers the built-ins, and by loading this class is also what creates the registry. */
     public static void bootstrap() {
         register("idle", IDLE);
         register("wander", new WanderScenario());

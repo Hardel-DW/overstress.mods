@@ -8,7 +8,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.AABB;
 
-/** Hunts the nearest mob within 16 blocks: entity queries, pathing pressure and damage handling. */
 public final class FightScenario implements BotScenario {
 
     @Override

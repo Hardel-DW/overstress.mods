@@ -8,7 +8,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 
-/** Walks and breaks a block every 8 ticks: block updates, drops, lighting and neighbour propagation. */
 public final class MineScenario implements BotScenario {
 
     @Override

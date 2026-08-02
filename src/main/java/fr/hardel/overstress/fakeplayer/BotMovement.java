@@ -4,7 +4,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.levelgen.Heightmap;
 
-/** Every position change a bot makes goes through here, so none of them can forget the chunk ticket. */
 public final class BotMovement {
 
     private BotMovement() {
@@ -14,7 +13,6 @@ public final class BotMovement {
         move(player, heading, speed, 0);
     }
 
-    /** One step along {@code heading}, {@code clearance} blocks over the column ahead. Waits on worldgen. */
     public static void move(ServerPlayer player, double heading, double speed, int clearance) {
         double targetX = player.getX() + Math.cos(heading) * speed;
         double targetZ = player.getZ() + Math.sin(heading) * speed;
@@ -29,10 +27,6 @@ public final class BotMovement {
         place(player, targetX, floor + clearance, targetZ, (float) Math.toDegrees(heading) - 90);
     }
 
-    /**
-     * Vanilla moves a player's chunk ticket only from inbound movement packets, and a headless bot sends
-     * none: without this the chunk under it unloads and it freezes on the spot for good.
-     */
     public static void place(ServerPlayer player, double x, double y, double z, float yRot) {
         player.snapTo(x, y, z, yRot, 0);
         player.level().getChunkSource().move(player);

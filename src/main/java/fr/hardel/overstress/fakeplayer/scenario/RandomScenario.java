@@ -6,10 +6,6 @@ import fr.hardel.overstress.fakeplayer.BotState;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 
-/**
- * Runs another scenario for a minute, then draws a new one. Each bot draws on its own and its first
- * period is cut short at random, so a fleet spawned in one tick drifts apart instead of switching together.
- */
 public final class RandomScenario implements BotScenario {
     private static final int PERIOD_TICKS = 20 * 60;
 
@@ -25,7 +21,6 @@ public final class RandomScenario implements BotScenario {
         state.delegate.tick(player, state, random);
     }
 
-    /** Anything but this scenario, which would recurse until the stack gives out. */
     private BotScenario drawOther(RandomSource random) {
         BotScenario drawn = BotScenarios.random(random);
         while (drawn == this) {

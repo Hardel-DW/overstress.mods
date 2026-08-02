@@ -12,7 +12,6 @@ import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Wanders, then crosses to the next dimension every 15 seconds: the cross-level transfer path. */
 public final class DimensionsScenario implements BotScenario {
 
     @Override

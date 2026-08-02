@@ -7,7 +7,6 @@ import net.minecraft.network.ProtocolInfo;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 
-/** No channel, packets dropped: the bot exists only server-side. */
 final class FakeConnection extends Connection {
 
     FakeConnection() {

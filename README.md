@@ -9,6 +9,10 @@ no channel: packets are dropped, so network and serialisation cost is absent fro
 taken with them. They are ticked at the head of their level's tick, on whatever thread runs it, which
 is what makes the load land on the region owning them when the server is regionised.
 
+Each bot also runs vanilla's own player tick, held in place afterwards the way vanilla holds a
+client-authoritative player. That is not decoration: measured on 200 idle bots, skipping it made a bot
+cost 0.035 ms instead of 0.122 ms, so the harness read 3.5 times too cheap.
+
 ## Commands
 
 `/fakeplayer` needs permission level 2 (gamemaster).
@@ -66,9 +70,9 @@ that ignores them will read too optimistic:
 - **Movement is teleportation.** Bots are placed with `snapTo`, so the whole inbound movement path is
   skipped: no packet handling, no collision resolution, no fall damage. Anti-cheat and movement mods
   see nothing to work with.
-- **There is no client.** A mod that sends a custom payload and waits for an answer waits forever, and
-  the `ChannelFutureListener` overload of `send` drops its listener rather than firing it. A mod that
-  blocks on that callback will hang.
+- **There is no client.** Nothing arrives inbound, so no packet handler ever runs. A mod that sends a
+  custom payload and waits for an answer waits forever, and the `ChannelFutureListener` overload of
+  `send` drops its listener rather than firing it. A mod that blocks on that callback will hang.
 - **Profiles are offline-mode.** UUIDs are derived from the bot name, so an online-mode server or an
   auth mod may refuse them.
 
