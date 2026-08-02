@@ -6,8 +6,8 @@ guess. Built to stress [Leafs](../leafs-template-26.2), but it depends on nothin
 
 The bots are real `ServerPlayer` instances placed through the real login path, on a connection with
 no channel: packets are dropped, so network and serialisation cost is absent from any measurement
-taken with them. They are ticked at the head of their level's tick, on whatever thread runs it, which
-is what makes the load land on the region owning them when the server is regionised.
+taken with them. Each one runs with its own entity tick, so it inherits whatever thread owns it and the
+mod makes no assumption about how the server splits its work, regionised or not.
 
 Each bot also runs vanilla's own player tick, held in place afterwards the way vanilla holds a
 client-authoritative player. That is not decoration: measured on 200 idle bots, skipping it made a bot

@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 public final class BotMovement {
+    private static final double MAX_CLIMB_PER_TICK = 4;
 
     private BotMovement() {
     }
@@ -19,12 +20,13 @@ public final class BotMovement {
         ServerLevel level = player.level();
         int blockX = (int) Math.floor(targetX);
         int blockZ = (int) Math.floor(targetZ);
-        if (level.getChunkSource().getChunkNow(blockX >> 4, blockZ >> 4) == null) {
+        if (!level.hasChunk(blockX >> 4, blockZ >> 4)) {
             return;
         }
 
         double floor = level.getHeight(Heightmap.Types.MOTION_BLOCKING, blockX, blockZ);
-        place(player, targetX, floor + clearance, targetZ, (float) Math.toDegrees(heading) - 90);
+        double climb = Math.clamp(floor + clearance - player.getY(), -MAX_CLIMB_PER_TICK, MAX_CLIMB_PER_TICK);
+        place(player, targetX, player.getY() + climb, targetZ, (float) Math.toDegrees(heading) - 90);
     }
 
     public static void place(ServerPlayer player, double x, double y, double z, float yRot) {

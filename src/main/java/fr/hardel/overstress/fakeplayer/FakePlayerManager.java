@@ -102,31 +102,28 @@ public final class FakePlayerManager {
         return snapshot;
     }
 
-    public static void tickLevel(ServerLevel level) {
-        for (Map.Entry<UUID, BotState> entry : bots.entrySet()) {
-            ServerPlayer bot = level.getServer().getPlayerList().getPlayer(entry.getKey());
-            if (bot == null || bot.level() != level) {
-                continue;
-            }
-
-            BotState state = entry.getValue();
-            if (!state.initialized) {
-                initialize(bot, state);
-                continue;
-            }
-
-            Vec3 held = bot.position();
-            bot.doTick();
-            bot.absSnapTo(held.x, held.y, held.z, bot.getYRot(), bot.getXRot());
-            state.scenario.tick(bot, state, state.random);
+    public static void tickBot(ServerPlayer bot) {
+        BotState state = bots.get(bot.getUUID());
+        if (state == null) {
+            return;
         }
+
+        if (!state.initialized) {
+            initialize(bot, state);
+            return;
+        }
+
+        Vec3 held = bot.position();
+        bot.doTick();
+        bot.absSnapTo(held.x, held.y, held.z, bot.getYRot(), bot.getXRot());
+        state.scenario.tick(bot, state, state.random);
     }
 
     private static void initialize(ServerPlayer bot, BotState state) {
         ServerLevel level = bot.level();
         int blockX = (int) Math.floor(state.spawnX);
         int blockZ = (int) Math.floor(state.spawnZ);
-        if (level.getChunkSource().getChunkNow(blockX >> 4, blockZ >> 4) == null) {
+        if (!level.hasChunk(blockX >> 4, blockZ >> 4)) {
             BotMovement.place(bot, state.spawnX, bot.getY(), state.spawnZ, 0);
             return;
         }
