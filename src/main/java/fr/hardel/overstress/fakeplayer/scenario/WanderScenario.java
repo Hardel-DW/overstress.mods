@@ -7,10 +7,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 
 /**
- * Walks one fixed diagonal and never turns. The diagonal is the point: it crosses a chunk border on
- * both axes at once, so it pulls in new chunks about twice as fast as an axis-aligned line for the
- * same speed. Never turning is also the point, because bots that keep their heading keep their
- * distance from each other, and the region layout under test stays stable instead of churning.
+ * One fixed diagonal, never turning: the diagonal crosses a chunk border on both axes at once, and
+ * keeping the heading keeps bots equidistant so the region layout under test stays stable.
  */
 public final class WanderScenario implements BotScenario {
     private static final double DIAGONAL = Math.PI / 4;

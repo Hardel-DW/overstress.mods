@@ -16,11 +16,20 @@ is what makes the load land on the region owning them when the server is regioni
 | Command | Effect |
 | --- | --- |
 | `/fakeplayer spawn <count> <spread> [scenario]` | Spawns `count` bots (1-500), each at its own draw within `spread` blocks of you on both axes (16-100000). Without `scenario`, each bot picks one at random. |
+| `/fakeplayer scenario set <bot> <scenario>` | Reassigns one bot. Errors on a real player. |
+| `/fakeplayer scenario random <percent> <scenario>` | Gives `scenario` to `percent` of the fleet (1-100) and idles everyone else. |
+| `/fakeplayer scenario list` | Every bot and what it runs, grouped by scenario. |
 | `/fakeplayer clear` | Disconnects every bot. |
-| `/fakeplayer list` | How many are alive. |
+| `/fakeplayer list` | How many are alive, without the roster. |
 
-Bots always land in the overworld, scattered around the horizontal position of whoever ran the
-command. From the console that is the world spawn.
+`scenario random` shuffles and takes a slice rather than rolling a die per bot, so 30% of 200 bots is
+exactly 60 bots and not roughly 60. The remainder is set to `overstress:idle`, which makes the command
+the whole picture of the fleet rather than a partial edit: run it twice with different scenarios and
+the second run undoes the first.
+
+Bots always land in the overworld on the surface of their column, the same placement rule
+`/spreadplayers` uses, scattered around the horizontal position of whoever ran the command. From the
+console that is the world spawn.
 
 ## Scenarios
 
@@ -28,11 +37,19 @@ command. From the console that is the world spawn.
 | --- | --- |
 | `overstress:idle` | Nothing at all. The baseline: what a connected player costs before it moves. |
 | `overstress:wander` | Walks one fixed diagonal and never turns. Chunk loading, cheap and steady. |
-| `overstress:elytra` | Travels 40 blocks up at flight speed. Chunk generation, fast. |
+| `overstress:fly` | Flies a straight line 100 blocks over the surface at 36 blocks/s. Chunk generation, fast. |
 | `overstress:mine` | Walks and breaks a block every 8 ticks. Block updates, drops, lighting. |
 | `overstress:fight` | Hunts and hits the nearest mob within 16 blocks. Entity queries and combat. |
 | `overstress:spawner` | Spawns zombies around itself up to 300 nearby. Entity tick and AI. |
 | `overstress:dimensions` | Wanders, then crosses to the next dimension every 15 seconds. Cross-level transfer. |
+| `overstress:random` | Runs another scenario for a minute, then draws a new one. Mixed, shifting load. |
+
+`fly` is a plain fly and not an elytra: an elytra trades height for speed, so a bot on one sinks into
+the first mountain it meets. Its altitude is recomputed every tick from the column it is entering, so
+terrain is cleared before it is reached rather than after.
+
+`random` draws per bot, never draws itself, and cuts each bot's first period short by a random amount,
+so a fleet spawned in one tick drifts apart instead of switching in lockstep.
 
 Bots are made invulnerable and given a 20 block step height on their first tick, so they walk over
 terrain instead of dying to it.

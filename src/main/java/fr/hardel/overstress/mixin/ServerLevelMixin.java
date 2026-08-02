@@ -11,15 +11,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.function.BooleanSupplier;
 
 /**
- * The only hook: bots tick with their level, on whatever thread runs that level tick. This targets
- * the level tick itself rather than a Fabric tick event on purpose. On a regionised server the bots
- * must load the region that owns them, and mod-facing tick events are exactly what such a server is
- * free to reroute onto a global thread.
+ * Bots tick with their level, on whatever thread runs it. The level tick is targeted rather than a
+ * Fabric tick event because a regionised server is free to reroute such an event onto a global thread.
  */
 @Mixin(ServerLevel.class)
 public abstract class ServerLevelMixin {
 
-    /** {@code ServerLevel.getLevel()} returns itself, which is how this hook reaches the level without casting. */
     @Shadow
     public abstract ServerLevel getLevel();
 

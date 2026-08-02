@@ -14,7 +14,6 @@ final class FakeConnection extends Connection {
         super(PacketFlow.SERVERBOUND);
     }
 
-    /** Vanilla assigns the listener then reconfigures the netty pipeline; only the listener exists here. */
     @Override
     public <T extends PacketListener> void setupInboundProtocol(ProtocolInfo<T> protocol, T listener) {
         this.packetListener = listener;

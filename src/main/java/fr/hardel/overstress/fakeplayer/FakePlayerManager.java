@@ -14,6 +14,10 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,10 +32,7 @@ public final class FakePlayerManager {
     private FakePlayerManager() {
     }
 
-    /**
-     * Places {@code count} bots in the overworld, each at its own draw within {@code spread} blocks of
-     * {@code center} on both axes, so a fleet lands scattered rather than stacked.
-     */
+    /** Each bot draws its own position within {@code spread} of {@code center}, so a fleet lands scattered. */
     public static int spawn(MinecraftServer server, Vec3 center, int count, int spread, BotScenario forced) {
         ServerLevel overworld = server.overworld();
         for (int index = 0; index < count; index++) {
@@ -67,6 +68,44 @@ public final class FakePlayerManager {
         return bots.size();
     }
 
+    /** False when {@code player} is a real player rather than one of ours. */
+    public static boolean setScenario(ServerPlayer player, BotScenario scenario) {
+        BotState state = bots.get(player.getUUID());
+        if (state == null) {
+            return false;
+        }
+
+        state.scenario = scenario;
+
+        return true;
+    }
+
+    /** Gives {@code scenario} to {@code percent} of the fleet and idles the rest; shuffled, so the count is exact. */
+    public static int assign(int percent, BotScenario scenario) {
+        List<UUID> ids = new ArrayList<>(bots.keySet());
+        for (int index = ids.size() - 1; index > 0; index--) {
+            Collections.swap(ids, index, random.nextInt(index + 1));
+        }
+
+        int selected = Math.round(ids.size() * percent / 100.0f);
+        for (int index = 0; index < ids.size(); index++) {
+            BotState state = bots.get(ids.get(index));
+            if (state != null) {
+                state.scenario = index < selected ? scenario : BotScenarios.IDLE;
+            }
+        }
+
+        return selected;
+    }
+
+    /** Snapshot of who runs what, keyed by uuid so the caller resolves its own names. */
+    public static Map<UUID, BotScenario> roster() {
+        Map<UUID, BotScenario> snapshot = new LinkedHashMap<>();
+        bots.forEach((id, state) -> snapshot.put(id, state.scenario));
+
+        return snapshot;
+    }
+
     /** Runs on the thread ticking {@code level}, at the head of its tick. */
     public static void tickLevel(ServerLevel level) {
         for (Map.Entry<UUID, BotState> entry : bots.entrySet()) {
@@ -85,16 +124,22 @@ public final class FakePlayerManager {
         }
     }
 
-    /** First tick after placement: move to the drawn position and harden the bot. */
+    /**
+     * Puts the bot on its drawn column once its own ticket has generated it, never by a blocking load:
+     * five hundred bots would mean five hundred blocking generations, and an absent chunk reports the
+     * bottom of the world as its height.
+     */
     private static void initialize(ServerPlayer bot, BotState state) {
         ServerLevel level = bot.level();
-        if (level.getChunkSource().getChunkNow((int) state.spawnX >> 4, (int) state.spawnZ >> 4) == null) {
-            level.getChunkSource().getChunk((int) state.spawnX >> 4, (int) state.spawnZ >> 4, true);
+        int blockX = (int) Math.floor(state.spawnX);
+        int blockZ = (int) Math.floor(state.spawnZ);
+        if (level.getChunkSource().getChunkNow(blockX >> 4, blockZ >> 4) == null) {
+            BotMovement.place(bot, state.spawnX, bot.getY(), state.spawnZ, 0);
             return;
         }
 
-        double floor = level.getHeight(Heightmap.Types.MOTION_BLOCKING, (int) Math.floor(state.spawnX), (int) Math.floor(state.spawnZ));
-        bot.snapTo(state.spawnX, floor, state.spawnZ, 0, 0);
+        double floor = level.getHeight(Heightmap.Types.MOTION_BLOCKING, blockX, blockZ);
+        BotMovement.place(bot, state.spawnX, floor, state.spawnZ, 0);
         bot.setInvulnerable(true);
         AttributeInstance stepHeight = bot.getAttribute(Attributes.STEP_HEIGHT);
         if (stepHeight != null) {
@@ -102,5 +147,6 @@ public final class FakePlayerManager {
         }
         state.heading = random.nextDouble() * Math.PI * 2;
         state.initialized = true;
+        Overstress.LOGGER.info("{} placed at [{}, {}, {}]", bot.getName().getString(), (int) state.spawnX, (int) floor, (int) state.spawnZ);
     }
 }
