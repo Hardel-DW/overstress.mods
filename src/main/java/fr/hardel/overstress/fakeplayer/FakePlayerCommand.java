@@ -54,6 +54,7 @@ public final class FakePlayerCommand {
                             .executes(context -> assignScenario(context.getSource(), IntegerArgumentType.getInteger(context, "percent"), IdentifierArgument.getId(context, "scenario"))))))
                 .then(Commands.literal("list").executes(context -> listScenarios(context.getSource()))))
             .then(Commands.literal("clear").executes(context -> clear(context.getSource())))
+            .then(Commands.literal("pos").executes(context -> positions(context.getSource())))
             .then(Commands.literal("list").executes(context -> list(context.getSource()))));
     }
 
@@ -122,6 +123,27 @@ public final class FakePlayerCommand {
         source.sendSuccess(() -> Component.literal("Removed " + removed + " bots"), true);
 
         return removed;
+    }
+
+    private static int positions(CommandSourceStack source) {
+        List<ServerPlayer> bots = new ArrayList<>();
+        FakePlayerManager.roster().keySet().forEach(id -> {
+            ServerPlayer bot = source.getServer().getPlayerList().getPlayer(id);
+            if (bot != null) {
+                bots.add(bot);
+            }
+        });
+
+        if (bots.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("No bots"), false);
+
+            return 0;
+        }
+
+        bots.sort(Comparator.comparing(bot -> bot.getName().getString()));
+        bots.forEach(bot -> source.sendSuccess(() -> Component.literal(bot.getName().getString() + " - " + bot.level().dimension().identifier() + " [" + (int) bot.getX() + ", " + (int) bot.getY() + ", " + (int) bot.getZ() + "]"), false));
+
+        return bots.size();
     }
 
     private static int list(CommandSourceStack source) {
