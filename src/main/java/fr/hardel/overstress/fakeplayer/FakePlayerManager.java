@@ -32,21 +32,23 @@ public final class FakePlayerManager {
     private FakePlayerManager() {
     }
 
-    public static int spawn(MinecraftServer server, Vec3 center, int count, int spread, BotScenario forced) {
-        ServerLevel overworld = server.overworld();
+    public static int spawn(MinecraftServer server, Vec3 center, int count, int spread, int clusterPercent, BotScenario forced) {
+        ClusterSpread cluster = new ClusterSpread(random, clusterPercent, bots.values().stream().map(state -> new Vec3(state.spawnX, 0, state.spawnZ)).toList());
         for (int index = 0; index < count; index++) {
-            String name = "Bot_" + nextBotId.getAndIncrement();
-            GameProfile profile = new GameProfile(UUID.nameUUIDFromBytes(("OverstressBot:" + name).getBytes(StandardCharsets.UTF_8)), name);
-            ServerPlayer bot = new ServerPlayer(server, overworld, profile, ClientInformation.createDefault());
-            BotScenario scenario = forced != null ? forced : BotScenarios.random(random);
             double x = center.x() + random.nextInt(spread * 2 + 1) - spread + 0.5;
             double z = center.z() + random.nextInt(spread * 2 + 1) - spread + 0.5;
-            bots.put(profile.id(), new BotState(scenario, x, z));
-            server.getPlayerList().placeNewPlayer(new FakeConnection(), bot, new CommonListenerCookie(profile, 0, ClientInformation.createDefault(), false));
-            Overstress.LOGGER.info("Spawned {} at [{}, {}] running {}", name, (int) x, (int) z, BotScenarios.REGISTRY.getKey(scenario));
+            spawn(server, "Bot_" + nextBotId.getAndIncrement(), cluster.next(new Vec3(x, 0, z)), forced != null ? forced : BotScenarios.random(random), random.nextLong());
         }
 
         return count;
+    }
+
+    public static void spawn(MinecraftServer server, String name, Vec3 position, BotScenario scenario, long seed) {
+        GameProfile profile = new GameProfile(UUID.nameUUIDFromBytes(("OverstressBot:" + name).getBytes(StandardCharsets.UTF_8)), name);
+        ServerPlayer bot = new ServerPlayer(server, server.overworld(), profile, ClientInformation.createDefault());
+        bots.put(profile.id(), new BotState(scenario, position.x(), position.z(), seed));
+        server.getPlayerList().placeNewPlayer(new FakeConnection(), bot, new CommonListenerCookie(profile, 0, ClientInformation.createDefault(), false));
+        Overstress.LOGGER.info("Spawned {} at [{}, {}] running {}", name, (int) position.x(), (int) position.z(), BotScenarios.REGISTRY.getKey(scenario));
     }
 
     public static int clear(MinecraftServer server) {

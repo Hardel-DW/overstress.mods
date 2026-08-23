@@ -1,11 +1,11 @@
 package fr.hardel.overstress.fakeplayer;
 
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -31,18 +31,15 @@ public final class FakePlayerCommand {
     private FakePlayerCommand() {
     }
 
-    public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> registerTree(dispatcher));
-    }
-
-    private static void registerTree(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("fakeplayer").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+    public static LiteralArgumentBuilder<CommandSourceStack> node() {
+        return Commands.literal("player")
             .then(Commands.literal("spawn")
                 .then(Commands.argument("count", IntegerArgumentType.integer(1, 500))
                     .then(Commands.argument("spread", IntegerArgumentType.integer(16, 100_000))
-                        .executes(context -> spawn(context.getSource(), IntegerArgumentType.getInteger(context, "count"), IntegerArgumentType.getInteger(context, "spread"), null))
-                        .then(Commands.argument("scenario", IdentifierArgument.id()).suggests(SCENARIOS)
-                            .executes(context -> spawn(context.getSource(), IntegerArgumentType.getInteger(context, "count"), IntegerArgumentType.getInteger(context, "spread"), IdentifierArgument.getId(context, "scenario")))))))
+                        .then(Commands.argument("cluster", IntegerArgumentType.integer(0, 100))
+                            .executes(context -> spawn(context, null))
+                            .then(Commands.argument("scenario", IdentifierArgument.id()).suggests(SCENARIOS)
+                                .executes(context -> spawn(context, IdentifierArgument.getId(context, "scenario"))))))))
             .then(Commands.literal("scenario")
                 .then(Commands.literal("set")
                     .then(Commands.argument("bot", EntityArgument.player())
@@ -55,13 +52,17 @@ public final class FakePlayerCommand {
                 .then(Commands.literal("list").executes(context -> listScenarios(context.getSource()))))
             .then(Commands.literal("clear").executes(context -> clear(context.getSource())))
             .then(Commands.literal("pos").executes(context -> positions(context.getSource())))
-            .then(Commands.literal("list").executes(context -> list(context.getSource()))));
+            .then(Commands.literal("list").executes(context -> list(context.getSource())));
     }
 
-    private static int spawn(CommandSourceStack source, int count, int spread, Identifier scenarioId) throws CommandSyntaxException {
+    private static int spawn(CommandContext<CommandSourceStack> context, Identifier scenarioId) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+        int count = IntegerArgumentType.getInteger(context, "count");
+        int spread = IntegerArgumentType.getInteger(context, "spread");
+        int cluster = IntegerArgumentType.getInteger(context, "cluster");
         BotScenario scenario = scenarioId == null ? null : resolve(scenarioId);
-        int spawned = FakePlayerManager.spawn(source.getServer(), source.getPosition(), count, spread, scenario);
-        source.sendSuccess(() -> Component.literal("Spawned " + spawned + " bot" + (spawned == 1 ? "" : "s") + " within " + spread + " blocks" + (scenarioId == null ? ", random scenarios" : ", scenario " + scenarioId)), true);
+        int spawned = FakePlayerManager.spawn(source.getServer(), source.getPosition(), count, spread, cluster, scenario);
+        source.sendSuccess(() -> Component.literal("Spawned " + spawned + " bots within " + spread + " blocks, " + cluster + "% clustered" + (scenarioId == null ? ", random scenarios" : ", scenario " + scenarioId)), true);
 
         return spawned;
     }
@@ -73,7 +74,6 @@ public final class FakePlayerCommand {
         }
 
         source.sendSuccess(() -> Component.literal(name + " now runs " + scenarioId), true);
-
         return 1;
     }
 
@@ -81,7 +81,6 @@ public final class FakePlayerCommand {
         int selected = FakePlayerManager.assign(percent, resolve(scenarioId));
         int idled = FakePlayerManager.count() - selected;
         source.sendSuccess(() -> Component.literal(selected + " bot" + (selected == 1 ? "" : "s") + " now run " + scenarioId + ", the other " + idled + " went idle"), true);
-
         return selected;
     }
 
@@ -97,7 +96,6 @@ public final class FakePlayerCommand {
 
         if (byScenario.isEmpty()) {
             source.sendSuccess(() -> Component.literal("No bots"), false);
-
             return 0;
         }
 
@@ -121,7 +119,6 @@ public final class FakePlayerCommand {
     private static int clear(CommandSourceStack source) {
         int removed = FakePlayerManager.clear(source.getServer());
         source.sendSuccess(() -> Component.literal("Removed " + removed + " bots"), true);
-
         return removed;
     }
 
@@ -136,19 +133,16 @@ public final class FakePlayerCommand {
 
         if (bots.isEmpty()) {
             source.sendSuccess(() -> Component.literal("No bots"), false);
-
             return 0;
         }
 
         bots.sort(Comparator.comparing(bot -> bot.getName().getString()));
         bots.forEach(bot -> source.sendSuccess(() -> Component.literal(bot.getName().getString() + " - " + bot.level().dimension().identifier() + " [" + (int) bot.getX() + ", " + (int) bot.getY() + ", " + (int) bot.getZ() + "]"), false));
-
         return bots.size();
     }
 
     private static int list(CommandSourceStack source) {
         source.sendSuccess(() -> Component.literal(FakePlayerManager.count() + " bots active"), false);
-
         return FakePlayerManager.count();
     }
 }

@@ -4,7 +4,7 @@ import net.minecraft.util.RandomSource;
 
 public final class BotState {
 
-    public final RandomSource random = RandomSource.create();
+    public final RandomSource random;
 
     public final double spawnX;
     public final double spawnZ;
@@ -17,9 +17,10 @@ public final class BotState {
     volatile BotScenario scenario;
     boolean initialized;
 
-    BotState(BotScenario scenario, double spawnX, double spawnZ) {
+    BotState(BotScenario scenario, double spawnX, double spawnZ, long seed) {
         this.scenario = scenario;
         this.spawnX = spawnX;
         this.spawnZ = spawnZ;
+        this.random = RandomSource.create(seed);
     }
 }

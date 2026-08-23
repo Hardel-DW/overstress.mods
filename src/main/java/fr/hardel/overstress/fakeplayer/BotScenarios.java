@@ -19,19 +19,26 @@ public final class BotScenarios {
     public static final ResourceKey<Registry<BotScenario>> KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Overstress.MOD_ID, "bot_scenario"));
     public static final Registry<BotScenario> REGISTRY = FabricRegistryBuilder.create(KEY).buildAndRegister();
     public static final BotScenario IDLE = new IdleScenario();
+    public static final BotScenario WANDER = new WanderScenario();
+    public static final BotScenario FLY = new FlyScenario();
+    public static final BotScenario MINE = new MineScenario();
+    public static final BotScenario FIGHT = new FightScenario();
+    public static final BotScenario SPAWNER = new SpawnerScenario();
+    public static final BotScenario DIMENSIONS = new DimensionsScenario();
+    public static final BotScenario RANDOM = new RandomScenario();
 
     private BotScenarios() {
     }
 
     public static void bootstrap() {
         register("idle", IDLE);
-        register("wander", new WanderScenario());
-        register("fly", new FlyScenario());
-        register("mine", new MineScenario());
-        register("fight", new FightScenario());
-        register("spawner", new SpawnerScenario());
-        register("dimensions", new DimensionsScenario());
-        register("random", new RandomScenario());
+        register("wander", WANDER);
+        register("fly", FLY);
+        register("mine", MINE);
+        register("fight", FIGHT);
+        register("spawner", SPAWNER);
+        register("dimensions", DIMENSIONS);
+        register("random", RANDOM);
     }
 
     public static BotScenario random(RandomSource random) {
