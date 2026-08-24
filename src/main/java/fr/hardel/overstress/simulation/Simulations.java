@@ -19,6 +19,7 @@ public final class Simulations {
         register("smoke", new Simulation(8, 300, 5, BotScenarios.IDLE, SharedConstants.TICKS_PER_MINUTE, false));
         register("idle", new Simulation(50, 2000, 5, BotScenarios.IDLE, 3 * SharedConstants.TICKS_PER_MINUTE, false));
         register("roam", new Simulation(40, 1500, 5, BotScenarios.FLY, 3 * SharedConstants.TICKS_PER_MINUTE, false));
+        register("border", new Simulation(20, 2100, 0, BotScenarios.WANDER, 3 * SharedConstants.TICKS_PER_MINUTE, false));
         register("mobs", new Simulation(20, 800, 5, BotScenarios.SPAWNER, 3 * SharedConstants.TICKS_PER_MINUTE, true));
     }
 
