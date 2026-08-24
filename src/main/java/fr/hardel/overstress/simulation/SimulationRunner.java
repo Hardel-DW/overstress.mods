@@ -36,7 +36,7 @@ public final class SimulationRunner {
         SimulationRunner runner = new SimulationRunner(server, id, simulation, GameRuleSnapshot.freeze(server, simulation.mobSpawning()));
         runner.spawnBots();
         active = runner;
-        Overstress.LOGGER.info("Simulation {} started, {} bots on a ring of {} blocks for {} ticks", id, simulation.bots(), simulation.radius(), simulation.durationTicks());
+        Overstress.LOGGER.info("Simulation {} started at tick {}, {} bots on a ring of {} blocks for {} ticks", id, runner.startTick, simulation.bots(), simulation.radius(), simulation.durationTicks());
         return true;
     }
 
