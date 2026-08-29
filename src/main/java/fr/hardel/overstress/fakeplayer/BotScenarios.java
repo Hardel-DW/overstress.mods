@@ -1,6 +1,7 @@
 package fr.hardel.overstress.fakeplayer;
 
 import fr.hardel.overstress.Overstress;
+import fr.hardel.overstress.fakeplayer.scenario.ChurnScenario;
 import fr.hardel.overstress.fakeplayer.scenario.DimensionsScenario;
 import fr.hardel.overstress.fakeplayer.scenario.FightScenario;
 import fr.hardel.overstress.fakeplayer.scenario.FlyScenario;
@@ -26,6 +27,7 @@ public final class BotScenarios {
     public static final BotScenario SPAWNER = new SpawnerScenario();
     public static final BotScenario DIMENSIONS = new DimensionsScenario();
     public static final BotScenario RANDOM = new RandomScenario();
+    public static final BotScenario CHURN = new ChurnScenario();
 
     private BotScenarios() {
     }
@@ -39,6 +41,7 @@ public final class BotScenarios {
         register("spawner", SPAWNER);
         register("dimensions", DIMENSIONS);
         register("random", RANDOM);
+        register("churn", CHURN);
     }
 
     public static BotScenario random(RandomSource random) {

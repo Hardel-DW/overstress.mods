@@ -9,6 +9,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 public final class Simulations {
+    private static final int TOUCHING = 32;
+    private static final int NEIGHBOURING = 256;
     public static final ResourceKey<Registry<Simulation>> KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Overstress.MOD_ID, "simulation"));
     public static final Registry<Simulation> REGISTRY = FabricRegistryBuilder.create(KEY).buildAndRegister();
 
@@ -16,11 +18,14 @@ public final class Simulations {
     }
 
     public static void bootstrap() {
-        register("smoke", new Simulation(8, 300, 5, BotScenarios.IDLE, SharedConstants.TICKS_PER_MINUTE, false));
-        register("idle", new Simulation(50, 2000, 5, BotScenarios.IDLE, 3 * SharedConstants.TICKS_PER_MINUTE, false));
-        register("roam", new Simulation(40, 1500, 5, BotScenarios.FLY, 3 * SharedConstants.TICKS_PER_MINUTE, false));
-        register("border", new Simulation(20, 2100, 0, BotScenarios.WANDER, 3 * SharedConstants.TICKS_PER_MINUTE, false));
-        register("mobs", new Simulation(20, 800, 5, BotScenarios.SPAWNER, 3 * SharedConstants.TICKS_PER_MINUTE, true));
+        register("smoke", new Simulation(8, 300, 5, TOUCHING, BotScenarios.IDLE, SharedConstants.TICKS_PER_MINUTE, 0, false));
+        register("idle", new Simulation(50, 2000, 5, TOUCHING, BotScenarios.IDLE, 3 * SharedConstants.TICKS_PER_MINUTE, 0, false));
+        register("roam", new Simulation(40, 1500, 5, TOUCHING, BotScenarios.FLY, 3 * SharedConstants.TICKS_PER_MINUTE, 0, false));
+        register("border", new Simulation(20, 2100, 0, TOUCHING, BotScenarios.WANDER, 3 * SharedConstants.TICKS_PER_MINUTE, 0, false));
+        register("mobs", new Simulation(20, 800, 5, TOUCHING, BotScenarios.SPAWNER, 3 * SharedConstants.TICKS_PER_MINUTE, 0, true));
+        register("churn", new Simulation(60, 3000, 5, NEIGHBOURING, BotScenarios.CHURN, 10 * SharedConstants.TICKS_PER_MINUTE, 0, false));
+        register("ramp", new Simulation(300, 20000, 10, NEIGHBOURING, BotScenarios.MINE, 15 * SharedConstants.TICKS_PER_MINUTE, 60, false));
+        register("sprawl", new Simulation(100, 50000, 5, NEIGHBOURING, BotScenarios.FLY, 10 * SharedConstants.TICKS_PER_MINUTE, 60, false));
     }
 
     private static void register(String path, Simulation simulation) {

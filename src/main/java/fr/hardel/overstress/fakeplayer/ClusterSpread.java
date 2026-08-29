@@ -6,15 +6,15 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 
 public final class ClusterSpread {
-    private static final int CLUSTER_RADIUS = 32;
-
     private final RandomSource random;
     private final int percent;
+    private final int radius;
     private final List<Vec3> placed;
 
-    public ClusterSpread(RandomSource random, int percent, List<Vec3> placed) {
+    public ClusterSpread(RandomSource random, int percent, int radius, List<Vec3> placed) {
         this.random = random;
         this.percent = percent;
+        this.radius = radius;
         this.placed = new ArrayList<>(placed);
     }
 
@@ -29,6 +29,6 @@ public final class ClusterSpread {
     }
 
     private int offset() {
-        return this.random.nextInt(CLUSTER_RADIUS * 2 + 1) - CLUSTER_RADIUS;
+        return this.random.nextInt(this.radius * 2 + 1) - this.radius;
     }
 }

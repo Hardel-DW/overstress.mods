@@ -24,16 +24,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class FakePlayerManager {
+    private static final int COMMAND_CLUSTER_RADIUS = 32;
     private static final Map<UUID, BotState> bots = new ConcurrentHashMap<>();
     private static final AtomicInteger nextBotId = new AtomicInteger(1);
-
     private static final RandomSource random = RandomSource.create();
 
     private FakePlayerManager() {
     }
 
     public static int spawn(MinecraftServer server, Vec3 center, int count, int spread, int clusterPercent, BotScenario forced) {
-        ClusterSpread cluster = new ClusterSpread(random, clusterPercent, bots.values().stream().map(state -> new Vec3(state.spawnX, 0, state.spawnZ)).toList());
+        ClusterSpread cluster = new ClusterSpread(random, clusterPercent, COMMAND_CLUSTER_RADIUS,
+            bots.values().stream().map(state -> new Vec3(state.spawnX, 0, state.spawnZ)).toList());
         for (int index = 0; index < count; index++) {
             double x = center.x() + random.nextInt(spread * 2 + 1) - spread + 0.5;
             double z = center.z() + random.nextInt(spread * 2 + 1) - spread + 0.5;

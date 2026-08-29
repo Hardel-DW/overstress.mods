@@ -18,6 +18,8 @@ public final class SimulationRunner {
     private final Simulation simulation;
     private final GameRuleSnapshot rules;
     private final long startTick;
+    private final ClusterSpread cluster;
+    private int spawned;
 
     private SimulationRunner(MinecraftServer server, Identifier id, Simulation simulation, GameRuleSnapshot rules) {
         this.server = server;
@@ -25,6 +27,7 @@ public final class SimulationRunner {
         this.simulation = simulation;
         this.rules = rules;
         this.startTick = server.getTickCount();
+        this.cluster = new ClusterSpread(RandomSource.create(seedOf(simulation.bots())), simulation.clusterPercent(), simulation.clusterRadius(), List.of());
     }
 
     public static boolean start(MinecraftServer server, Identifier id, Simulation simulation) {
@@ -34,9 +37,9 @@ public final class SimulationRunner {
 
         FakePlayerManager.clear(server);
         SimulationRunner runner = new SimulationRunner(server, id, simulation, GameRuleSnapshot.freeze(server, simulation.mobSpawning()));
-        runner.spawnBots();
         active = runner;
-        Overstress.LOGGER.info("Simulation {} started at tick {}, {} bots on a ring of {} blocks for {} ticks", id, runner.startTick, simulation.bots(), simulation.radius(), simulation.durationTicks());
+        Overstress.LOGGER.info("Simulation {} started at tick {}, {} bots on a ring of {} blocks, one every {} ticks, for {} ticks", id, runner.startTick,
+            simulation.bots(), simulation.radius(), simulation.spawnIntervalTicks(), simulation.durationTicks());
         return true;
     }
 
@@ -53,7 +56,12 @@ public final class SimulationRunner {
 
     public static void tick(MinecraftServer server) {
         SimulationRunner runner = active;
-        if (runner != null && runner.elapsedTicks() >= runner.simulation.durationTicks()) {
+        if (runner == null) {
+            return;
+        }
+
+        runner.spawnDueBots();
+        if (runner.elapsedTicks() >= runner.simulation.durationTicks()) {
             stop();
         }
     }
@@ -74,13 +82,14 @@ public final class SimulationRunner {
         return this.server.getTickCount() - this.startTick;
     }
 
-    private void spawnBots() {
-        int count = this.simulation.bots();
-        ClusterSpread cluster = new ClusterSpread(RandomSource.create(seedOf(count)), this.simulation.clusterPercent(), List.of());
-        for (int index = 0; index < count; index++) {
-            double angle = 2 * Math.PI * index / count;
+    private void spawnDueBots() {
+        int interval = this.simulation.spawnIntervalTicks();
+        int due = interval <= 0 ? this.simulation.bots() : (int) Math.min(this.simulation.bots(), elapsedTicks() / interval + 1);
+        while (this.spawned < due) {
+            int index = this.spawned++;
+            double angle = 2 * Math.PI * index / this.simulation.bots();
             Vec3 ring = new Vec3(Math.cos(angle) * this.simulation.radius(), 0, Math.sin(angle) * this.simulation.radius());
-            FakePlayerManager.spawn(this.server, "Sim_" + index, cluster.next(ring), this.simulation.scenario(), seedOf(index));
+            FakePlayerManager.spawn(this.server, "Sim_" + index, this.cluster.next(ring), this.simulation.scenario(), seedOf(index));
         }
     }
 
