@@ -46,10 +46,18 @@ public final class FakePlayerManager {
 
     public static void spawn(MinecraftServer server, String name, Vec3 position, BotScenario scenario, long seed) {
         GameProfile profile = new GameProfile(UUID.nameUUIDFromBytes(("OverstressBot:" + name).getBytes(StandardCharsets.UTF_8)), name);
-        ServerPlayer bot = new ServerPlayer(server, server.overworld(), profile, ClientInformation.createDefault());
+        ClientInformation information = information(server);
+        ServerPlayer bot = new ServerPlayer(server, server.overworld(), profile, information);
         bots.put(profile.id(), new BotState(scenario, position.x(), position.z(), seed));
-        server.getPlayerList().placeNewPlayer(new FakeConnection(), bot, new CommonListenerCookie(profile, 0, ClientInformation.createDefault(), false));
+        server.getPlayerList().placeNewPlayer(new FakeConnection(), bot, new CommonListenerCookie(profile, 0, information, false));
         Overstress.LOGGER.info("Spawned {} at [{}, {}] running {}", name, (int) position.x(), (int) position.z(), BotScenarios.REGISTRY.getKey(scenario));
+    }
+
+    /** A bot sees as far as the server allows, like a client with its slider at maximum; the default would ask for 2 chunks. */
+    private static ClientInformation information(MinecraftServer server) {
+        ClientInformation defaults = ClientInformation.createDefault();
+        return new ClientInformation(defaults.language(), server.getPlayerList().getViewDistance(), defaults.chatVisibility(), defaults.chatColors(), defaults.modelCustomisation(),
+            defaults.mainHand(), defaults.textFilteringEnabled(), defaults.allowsListing(), defaults.particleStatus());
     }
 
     public static int clear(MinecraftServer server) {
