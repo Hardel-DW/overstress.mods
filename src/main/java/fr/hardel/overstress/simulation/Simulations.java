@@ -27,6 +27,7 @@ public final class Simulations {
         register("ramp", new Simulation(300, 20000, 10, NEIGHBOURING, BotScenarios.MINE, 15 * SharedConstants.TICKS_PER_MINUTE, 60, false));
         register("sprawl", new Simulation(100, 50000, 5, NEIGHBOURING, BotScenarios.FLY, 10 * SharedConstants.TICKS_PER_MINUTE, 60, false));
         register("flight", new Simulation(1, 0, 0, TOUCHING, BotScenarios.FLY, 5 * SharedConstants.TICKS_PER_MINUTE, 0, false));
+        register("spread", new Simulation(20, 3000, 0, TOUCHING, BotScenarios.IDLE, 4 * SharedConstants.TICKS_PER_MINUTE, 0, false));
     }
 
     private static void register(String path, Simulation simulation) {

@@ -35,7 +35,7 @@ public final class SimulationRunner {
             return false;
         }
 
-        FakePlayerManager.clear(server);
+        FakePlayerManager.clear(server, Integer.MAX_VALUE);
         SimulationRunner runner = new SimulationRunner(server, id, simulation, GameRuleSnapshot.freeze(server, simulation.mobSpawning()));
         active = runner;
         Overstress.LOGGER.info("Simulation {} started at tick {}, {} bots on a ring of {} blocks, one every {} ticks, for {} ticks", id, runner.startTick,
@@ -98,7 +98,7 @@ public final class SimulationRunner {
     }
 
     private void tearDown() {
-        FakePlayerManager.clear(this.server);
+        FakePlayerManager.clear(this.server, Integer.MAX_VALUE);
         this.rules.restore();
         Overstress.LOGGER.info("Simulation {} stopped after {} ticks", this.id, elapsedTicks());
     }

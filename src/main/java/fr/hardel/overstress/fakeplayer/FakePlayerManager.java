@@ -20,12 +20,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Deque;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class FakePlayerManager {
     private static final int COMMAND_CLUSTER_RADIUS = 32;
     private static final Map<UUID, BotState> bots = new ConcurrentHashMap<>();
+    private static final Deque<UUID> arrivals = new ConcurrentLinkedDeque<>();
     private static final AtomicInteger nextBotId = new AtomicInteger(1);
     private static final RandomSource random = RandomSource.create();
 
@@ -49,6 +52,7 @@ public final class FakePlayerManager {
         ClientInformation information = information(server);
         ServerPlayer bot = new ServerPlayer(server, server.overworld(), profile, information);
         bots.put(profile.id(), new BotState(scenario, position.x(), position.z(), seed));
+        arrivals.addLast(profile.id());
         server.getPlayerList().placeNewPlayer(new FakeConnection(), bot, new CommonListenerCookie(profile, 0, information, false));
         Overstress.LOGGER.info("Spawned {} at [{}, {}] running {}", name, (int) position.x(), (int) position.z(), BotScenarios.REGISTRY.getKey(scenario));
     }
@@ -60,16 +64,18 @@ public final class FakePlayerManager {
             defaults.mainHand(), defaults.textFilteringEnabled(), defaults.allowsListing(), defaults.particleStatus());
     }
 
-    public static int clear(MinecraftServer server) {
+    /** Removes the {@code count} most recent bots, the wave that just arrived while the older ones stay. */
+    public static int clear(MinecraftServer server, int count) {
         int removed = 0;
-        for (UUID id : bots.keySet()) {
+        UUID id;
+        while (removed < count && (id = arrivals.pollLast()) != null) {
+            bots.remove(id);
             ServerPlayer bot = server.getPlayerList().getPlayer(id);
             if (bot != null) {
                 server.getPlayerList().remove(bot);
                 removed++;
             }
         }
-        bots.clear();
 
         return removed;
     }

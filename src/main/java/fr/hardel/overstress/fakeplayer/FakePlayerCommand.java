@@ -50,7 +50,8 @@ public final class FakePlayerCommand {
                         .then(Commands.argument("scenario", IdentifierArgument.id()).suggests(SCENARIOS)
                             .executes(context -> assignScenario(context.getSource(), IntegerArgumentType.getInteger(context, "percent"), IdentifierArgument.getId(context, "scenario"))))))
                 .then(Commands.literal("list").executes(context -> listScenarios(context.getSource()))))
-            .then(Commands.literal("clear").executes(context -> clear(context.getSource())))
+            .then(Commands.literal("clear").executes(context -> clear(context.getSource(), Integer.MAX_VALUE))
+                .then(Commands.argument("count", IntegerArgumentType.integer(1)).executes(context -> clear(context.getSource(), IntegerArgumentType.getInteger(context, "count")))))
             .then(Commands.literal("pos").executes(context -> positions(context.getSource())))
             .then(Commands.literal("list").executes(context -> list(context.getSource())));
     }
@@ -116,8 +117,8 @@ public final class FakePlayerCommand {
         return scenario;
     }
 
-    private static int clear(CommandSourceStack source) {
-        int removed = FakePlayerManager.clear(source.getServer());
+    private static int clear(CommandSourceStack source, int count) {
+        int removed = FakePlayerManager.clear(source.getServer(), count);
         source.sendSuccess(() -> Component.literal("Removed " + removed + " bots"), true);
         return removed;
     }
