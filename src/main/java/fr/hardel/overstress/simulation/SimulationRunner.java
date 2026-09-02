@@ -1,6 +1,7 @@
 package fr.hardel.overstress.simulation;
 
 import fr.hardel.overstress.Overstress;
+import fr.hardel.overstress.fakeplayer.ClearOrder;
 import fr.hardel.overstress.fakeplayer.ClusterSpread;
 import fr.hardel.overstress.fakeplayer.FakePlayerManager;
 import java.util.List;
@@ -35,7 +36,7 @@ public final class SimulationRunner {
             return false;
         }
 
-        FakePlayerManager.clear(server, Integer.MAX_VALUE);
+        FakePlayerManager.clear(server, Integer.MAX_VALUE, ClearOrder.LAST);
         SimulationRunner runner = new SimulationRunner(server, id, simulation, GameRuleSnapshot.freeze(server, simulation.mobSpawning()));
         active = runner;
         Overstress.LOGGER.info("Simulation {} started at tick {}, {} bots on a ring of {} blocks, one every {} ticks, for {} ticks", id, runner.startTick,
@@ -98,7 +99,7 @@ public final class SimulationRunner {
     }
 
     private void tearDown() {
-        FakePlayerManager.clear(this.server, Integer.MAX_VALUE);
+        FakePlayerManager.clear(this.server, Integer.MAX_VALUE, ClearOrder.LAST);
         this.rules.restore();
         Overstress.LOGGER.info("Simulation {} stopped after {} ticks", this.id, elapsedTicks());
     }

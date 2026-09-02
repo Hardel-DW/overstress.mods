@@ -34,12 +34,15 @@ public final class FakePlayerCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> node() {
         return Commands.literal("player")
             .then(Commands.literal("spawn")
-                .then(Commands.argument("count", IntegerArgumentType.integer(1, 500))
+                .then(Commands.argument("count", IntegerArgumentType.integer(1, 5000))
                     .then(Commands.argument("spread", IntegerArgumentType.integer(16, 100_000))
+                        .executes(context -> spawn(context, 0, null, 0))
                         .then(Commands.argument("cluster", IntegerArgumentType.integer(0, 100))
-                            .executes(context -> spawn(context, null))
+                            .executes(context -> spawn(context, IntegerArgumentType.getInteger(context, "cluster"), null, 0))
                             .then(Commands.argument("scenario", IdentifierArgument.id()).suggests(SCENARIOS)
-                                .executes(context -> spawn(context, IdentifierArgument.getId(context, "scenario"))))))))
+                                .executes(context -> spawn(context, IntegerArgumentType.getInteger(context, "cluster"), IdentifierArgument.getId(context, "scenario"), 0))
+                                .then(Commands.argument("everyTicks", IntegerArgumentType.integer(1))
+                                    .executes(context -> spawn(context, IntegerArgumentType.getInteger(context, "cluster"), IdentifierArgument.getId(context, "scenario"), IntegerArgumentType.getInteger(context, "everyTicks")))))))))
             .then(Commands.literal("scenario")
                 .then(Commands.literal("set")
                     .then(Commands.argument("bot", EntityArgument.player())
@@ -50,22 +53,28 @@ public final class FakePlayerCommand {
                         .then(Commands.argument("scenario", IdentifierArgument.id()).suggests(SCENARIOS)
                             .executes(context -> assignScenario(context.getSource(), IntegerArgumentType.getInteger(context, "percent"), IdentifierArgument.getId(context, "scenario"))))))
                 .then(Commands.literal("list").executes(context -> listScenarios(context.getSource()))))
-            .then(Commands.literal("clear").executes(context -> clear(context.getSource(), Integer.MAX_VALUE))
-                .then(Commands.argument("count", IntegerArgumentType.integer(1)).executes(context -> clear(context.getSource(), IntegerArgumentType.getInteger(context, "count")))))
+            .then(Commands.literal("clear").executes(context -> clear(context.getSource(), Integer.MAX_VALUE, ClearOrder.LAST))
+                .then(Commands.literal("within")
+                    .then(Commands.argument("radius", IntegerArgumentType.integer(1)).executes(context -> clearWithin(context.getSource(), IntegerArgumentType.getInteger(context, "radius")))))
+                .then(Commands.argument("count", IntegerArgumentType.integer(1))
+                    .executes(context -> clear(context.getSource(), IntegerArgumentType.getInteger(context, "count"), ClearOrder.LAST))
+                    .then(Commands.literal("first").executes(context -> clear(context.getSource(), IntegerArgumentType.getInteger(context, "count"), ClearOrder.FIRST)))
+                    .then(Commands.literal("last").executes(context -> clear(context.getSource(), IntegerArgumentType.getInteger(context, "count"), ClearOrder.LAST)))
+                    .then(Commands.literal("random").executes(context -> clear(context.getSource(), IntegerArgumentType.getInteger(context, "count"), ClearOrder.RANDOM)))))
             .then(Commands.literal("pos").executes(context -> positions(context.getSource())))
             .then(Commands.literal("list").executes(context -> list(context.getSource())));
     }
 
-    private static int spawn(CommandContext<CommandSourceStack> context, Identifier scenarioId) throws CommandSyntaxException {
+    private static int spawn(CommandContext<CommandSourceStack> context, int cluster, Identifier scenarioId, int everyTicks) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         int count = IntegerArgumentType.getInteger(context, "count");
         int spread = IntegerArgumentType.getInteger(context, "spread");
-        int cluster = IntegerArgumentType.getInteger(context, "cluster");
         BotScenario scenario = scenarioId == null ? null : resolve(scenarioId);
-        int spawned = FakePlayerManager.spawn(source.getServer(), source.getPosition(), count, spread, cluster, scenario);
-        source.sendSuccess(() -> Component.literal("Spawned " + spawned + " bots within " + spread + " blocks, " + cluster + "% clustered" + (scenarioId == null ? ", random scenarios" : ", scenario " + scenarioId)), true);
+        FakePlayerManager.spawn(source.getServer(), source.getPosition(), count, spread, cluster, scenario, everyTicks);
+        String pace = everyTicks > 0 ? ", one every " + everyTicks + " ticks" : "";
+        source.sendSuccess(() -> Component.literal("Spawning " + count + " bots within " + spread + " blocks, " + cluster + "% clustered" + (scenarioId == null ? ", random scenarios" : ", scenario " + scenarioId) + pace), true);
 
-        return spawned;
+        return count;
     }
 
     private static int setScenario(CommandSourceStack source, ServerPlayer bot, Identifier scenarioId) throws CommandSyntaxException {
@@ -117,9 +126,15 @@ public final class FakePlayerCommand {
         return scenario;
     }
 
-    private static int clear(CommandSourceStack source, int count) {
-        int removed = FakePlayerManager.clear(source.getServer(), count);
+    private static int clear(CommandSourceStack source, int count, ClearOrder order) {
+        int removed = FakePlayerManager.clear(source.getServer(), count, order);
         source.sendSuccess(() -> Component.literal("Removed " + removed + " bots"), true);
+        return removed;
+    }
+
+    private static int clearWithin(CommandSourceStack source, int radius) {
+        int removed = FakePlayerManager.clearWithin(source.getServer(), source.getPosition(), radius);
+        source.sendSuccess(() -> Component.literal("Removed " + removed + " bots within " + radius + " blocks"), true);
         return removed;
     }
 

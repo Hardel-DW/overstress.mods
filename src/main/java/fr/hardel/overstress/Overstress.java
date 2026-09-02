@@ -1,6 +1,7 @@
 package fr.hardel.overstress;
 
 import fr.hardel.overstress.fakeplayer.BotScenarios;
+import fr.hardel.overstress.fakeplayer.FakePlayerManager;
 import fr.hardel.overstress.simulation.SimulationRunner;
 import fr.hardel.overstress.simulation.Simulations;
 import net.fabricmc.api.ModInitializer;
@@ -18,5 +19,6 @@ public final class Overstress implements ModInitializer {
         Simulations.bootstrap();
         OverstressCommand.register();
         ServerTickEvents.END_SERVER_TICK.register(SimulationRunner::tick);
+        ServerTickEvents.END_SERVER_TICK.register(FakePlayerManager::tick);
     }
 }
