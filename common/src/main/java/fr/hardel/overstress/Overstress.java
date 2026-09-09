@@ -4,21 +4,25 @@ import fr.hardel.overstress.fakeplayer.BotScenarios;
 import fr.hardel.overstress.fakeplayer.FakePlayerManager;
 import fr.hardel.overstress.simulation.SimulationRunner;
 import fr.hardel.overstress.simulation.Simulations;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Overstress implements ModInitializer {
+/** What the mod does, whichever loader starts it: the loader module wires these two calls to its own events. */
+public final class Overstress {
     public static final String MOD_ID = "overstress";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    @Override
-    public void onInitialize() {
+    private Overstress() {
+    }
+
+    public static void bootstrap() {
         BotScenarios.bootstrap();
         Simulations.bootstrap();
-        OverstressCommand.register();
-        ServerTickEvents.END_SERVER_TICK.register(SimulationRunner::tick);
-        ServerTickEvents.END_SERVER_TICK.register(FakePlayerManager::tick);
+    }
+
+    public static void onServerTick(MinecraftServer server) {
+        SimulationRunner.tick(server);
+        FakePlayerManager.tick(server);
     }
 }

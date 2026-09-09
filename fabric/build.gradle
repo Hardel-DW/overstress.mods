@@ -1,0 +1,43 @@
+plugins {
+	id 'net.fabricmc.fabric-loom'
+}
+
+base {
+	archivesName = "Overstress-fabric-${minecraftMajor}"
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${rootProject.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+}
+
+loom {
+	accessWidenerPath = project(':common').file('src/main/resources/overstress.accesswidener')
+}
+
+tasks.named('compileJava') {
+	source(project(':common').sourceSets.main.allJava)
+}
+
+tasks.named('sourcesJar') {
+	from(project(':common').sourceSets.main.allSource)
+}
+
+processResources {
+	from(project(':common').sourceSets.main.resources)
+	inputs.property 'version', project.version
+
+	filesMatching('fabric.mod.json') {
+		expand version: project.version
+	}
+}
+
+publishing {
+	publications {
+		create('mavenJava', MavenPublication) {
+			artifactId = "overstress-fabric-${minecraftMajor}"
+			from components.java
+		}
+	}
+}
