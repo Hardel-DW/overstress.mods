@@ -2,8 +2,9 @@ package fr.hardel.overstress.simulation;
 
 import fr.hardel.overstress.Overstress;
 import fr.hardel.overstress.fakeplayer.BotScenarios;
-import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
+import com.mojang.serialization.Lifecycle;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -12,7 +13,7 @@ public final class Simulations {
     private static final int TOUCHING = 32;
     private static final int NEIGHBOURING = 256;
     public static final ResourceKey<Registry<Simulation>> KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Overstress.MOD_ID, "simulation"));
-    public static final Registry<Simulation> REGISTRY = FabricRegistryBuilder.create(KEY).buildAndRegister();
+    public static final Registry<Simulation> REGISTRY = new MappedRegistry<>(KEY, Lifecycle.stable());
 
     private Simulations() {
     }

@@ -10,7 +10,8 @@ import fr.hardel.overstress.fakeplayer.scenario.MineScenario;
 import fr.hardel.overstress.fakeplayer.scenario.RandomScenario;
 import fr.hardel.overstress.fakeplayer.scenario.SpawnerScenario;
 import fr.hardel.overstress.fakeplayer.scenario.WanderScenario;
-import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
+import com.mojang.serialization.Lifecycle;
+import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -18,7 +19,7 @@ import net.minecraft.util.RandomSource;
 
 public final class BotScenarios {
     public static final ResourceKey<Registry<BotScenario>> KEY = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Overstress.MOD_ID, "bot_scenario"));
-    public static final Registry<BotScenario> REGISTRY = FabricRegistryBuilder.create(KEY).buildAndRegister();
+    public static final Registry<BotScenario> REGISTRY = new MappedRegistry<>(KEY, Lifecycle.stable());
     public static final BotScenario IDLE = new IdleScenario();
     public static final BotScenario WANDER = new WanderScenario();
     public static final BotScenario FLY = new FlyScenario();
