@@ -6,7 +6,7 @@ license = "CC0-1.0"
 modId = "overstress"
 version = "${version}"
 displayName = "Overstress"
-logoFile = "assets/overstress/icon.png"
+iconFile = "assets/overstress/icon.png"
 authors = "Hardel"
 description = '''
 Server load harness. /overstress player spawns headless bots that walk, fly, mine, fight, spawn mobs and cross dimensions; each one ticks with the level that owns it, so the load lands wherever a real player's would. /overstress simulation replays a named preset, same population at the same spots on every run.
