@@ -209,7 +209,7 @@ public final class FakePlayerManager {
 
         double floor = level.getHeight(Heightmap.Types.MOTION_BLOCKING, blockX, blockZ);
         BotMovement.place(bot, state.spawnX, floor, state.spawnZ, 0);
-        bot.setInvulnerable(true);
+        bot.setPermanentlyInvulnerable(true);
         AttributeInstance stepHeight = bot.getAttribute(Attributes.STEP_HEIGHT);
         if (stepHeight != null) {
             stepHeight.setBaseValue(20);
