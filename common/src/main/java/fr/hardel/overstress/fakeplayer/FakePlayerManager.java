@@ -192,10 +192,16 @@ public final class FakePlayerManager {
             return;
         }
 
+        ((FakeConnection) bot.connection.connection).acknowledgeBatches(bot.connection.chunkSender);
         Vec3 held = bot.position();
         bot.doTick();
         bot.absSnapTo(held.x, held.y, held.z, bot.getYRot(), bot.getXRot());
         state.scenario.tick(bot, state, state.random);
+    }
+
+    /** Null for a real player. */
+    public static @Nullable ClientChunks clientChunks(ServerPlayer player) {
+        return player.connection.connection instanceof FakeConnection fake ? fake.clientChunks() : null;
     }
 
     private static void initialize(ServerPlayer bot, BotState state) {
