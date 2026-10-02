@@ -1,37 +1,58 @@
 package fr.hardel.overstress.fakeplayer.scenario;
 
 import fr.hardel.overstress.fakeplayer.BotScenario;
+import fr.hardel.overstress.fakeplayer.BotStanding;
 import fr.hardel.overstress.fakeplayer.BotState;
 import fr.hardel.overstress.fakeplayer.client.BotPilot;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.OptionalInt;
 
 public final class SpawnerScenario implements BotScenario {
+    private static final BotStanding CREATIVE = new BotStanding(GameType.CREATIVE, true, false);
+    private static final int CLICK_TICKS = 2;
+    private static final int MAX_NEARBY = 300;
+    private static final double NEARBY_WIDTH = 96;
+    private static final double NEARBY_HEIGHT = 64;
+    private static final double ROUND_RADIUS = 6;
+    private static final double ROUND_STEP = 0.3;
+    private static final double SPEED = 0.1;
+    private static final int THROW_RADIUS = 3;
 
     @Override
     public void steer(BotPilot pilot, BotState state, RandomSource random) {
-    }
-
-    @Override
-    public void act(ServerPlayer player, BotState state) {
-        if (--state.actCooldown > 0) {
+        double angle = Math.atan2(pilot.z() - state.spawnZ, pilot.x() - state.spawnX) + ROUND_STEP;
+        pilot.walkTo(new Vec3(state.spawnX + Math.cos(angle) * ROUND_RADIUS, 0, state.spawnZ + Math.sin(angle) * ROUND_RADIUS), SPEED);
+        if (--state.cooldown > 0) {
             return;
         }
 
-        state.actCooldown = 20;
-        ServerLevel level = player.level();
-        RandomSource random = player.getRandom();
-        int nearby = level.getEntitiesOfClass(Mob.class, AABB.ofSize(player.position(), 96, 64, 96)).size();
-        for (int spawned = 0; spawned < 10 && nearby + spawned < 300; spawned++) {
-            BlockPos pos = player.blockPosition().offset(random.nextInt(17) - 8, 0, random.nextInt(17) - 8);
-            EntityTypes.ZOMBIE.spawn(level, level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, pos), EntitySpawnReason.COMMAND);
+        state.cooldown = CLICK_TICKS;
+        int nearby = pilot.entities().count(AABB.ofSize(pilot.position(), NEARBY_WIDTH, NEARBY_HEIGHT, NEARBY_WIDTH), entity -> entity.type().getCategory() != MobCategory.MISC);
+        OptionalInt egg = pilot.inventory().hotbar(item -> item.is(Items.ZOMBIE_SPAWN_EGG));
+        int x = Mth.floor(pilot.x()) + random.nextInt(THROW_RADIUS * 2 + 1) - THROW_RADIUS;
+        int z = Mth.floor(pilot.z()) + random.nextInt(THROW_RADIUS * 2 + 1) - THROW_RADIUS;
+        OptionalInt height = pilot.terrain().height(x, z);
+        if (nearby >= MAX_NEARBY || egg.isEmpty() || height.isEmpty()) {
+            return;
         }
+
+        BlockPos ground = new BlockPos(x, height.getAsInt() - 1, z);
+        pilot.hands().select(egg.getAsInt());
+        pilot.look(Vec3.atCenterOf(ground).add(0, 0.5, 0));
+        pilot.hands().useOn(ground, Direction.UP);
+    }
+
+    @Override
+    public BotStanding standing() {
+        return CREATIVE;
     }
 }

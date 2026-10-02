@@ -8,6 +8,7 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.Connection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -197,11 +198,9 @@ public final class FakePlayerManager {
         return snapshot;
     }
 
-    public static void act(ServerPlayer player) {
-        BotClient bot = bots.get(player.getUUID());
-        if (bot != null) {
-            bot.state().scenario().act(player, bot.state());
-        }
+    public static boolean isOperator(NameAndId nameAndId) {
+        BotClient bot = bots.get(nameAndId.id());
+        return bot != null && bot.standing().operator();
     }
 
     /** Null for a real player. */

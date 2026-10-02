@@ -9,6 +9,7 @@ import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Input;
@@ -26,6 +27,7 @@ final class BotBody {
     private static final double MOVE_THRESHOLD = 2.0E-4;
     private static final int POSITION_REMINDER_TICKS = 20;
     private static final Input FORWARD = new Input(true, false, false, false, false, false, false);
+    private static final double EYE_HEIGHT = EntityTypes.PLAYER.getDimensions().eyeHeight();
 
     private boolean placed;
     private double x;
@@ -62,8 +64,34 @@ final class BotBody {
         return z;
     }
 
+    float yRot() {
+        return yRot;
+    }
+
+    float xRot() {
+        return xRot;
+    }
+
+    boolean onGround() {
+        return onGround;
+    }
+
+    Vec3 position() {
+        return new Vec3(x, y, z);
+    }
+
+    Vec3 eye() {
+        return new Vec3(x, y + EYE_HEIGHT, z);
+    }
+
     boolean placed() {
         return placed;
+    }
+
+    void look(Vec3 point) {
+        Vec3 sight = point.subtract(eye());
+        yRot = Mth.wrapDegrees((float) Math.toDegrees(Math.atan2(sight.z, sight.x)) - 90);
+        xRot = Mth.wrapDegrees((float) -Math.toDegrees(Math.atan2(sight.y, sight.horizontalDistance())));
     }
 
     void unplace() {
@@ -88,7 +116,7 @@ final class BotBody {
     void travel(BotPilot pilot, ClientTerrain terrain) {
         double nextX = x + Math.cos(pilot.heading()) * pilot.speed();
         double nextZ = z + Math.sin(pilot.heading()) * pilot.speed();
-        OptionalInt ground = terrain.top(nextX, nextZ);
+        OptionalInt ground = terrain.ground(nextX, nextZ);
         double nextY = pilot.flying() ? glide(pilot, ground) : walk(ground, terrain.minY());
         boolean blocked = ground.isPresent() && nextY < ground.getAsInt();
         if (!blocked) {
@@ -101,7 +129,7 @@ final class BotBody {
         onGround = !blocked && ground.isPresent() && nextY == ground.getAsInt();
         fallFlying = fallFlying && !onGround;
         input = pilot.speed() > 0 ? FORWARD : Input.EMPTY;
-        if (pilot.speed() > 0) {
+        if (pilot.speed() > 0 && !pilot.looking()) {
             yRot = (float) Math.toDegrees(pilot.heading()) - 90;
         }
     }

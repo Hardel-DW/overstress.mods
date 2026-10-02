@@ -8,8 +8,7 @@ public final class BotState {
     public final double spawnZ;
     public volatile double heading;
     public int cooldown;
-    public int actCooldown;
-    public int dimensionIndex;
+    public int deaths;
     public volatile BotScenario delegate;
     public int delegateTicks;
 

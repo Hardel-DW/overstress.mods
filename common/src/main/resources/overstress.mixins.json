@@ -3,10 +3,10 @@
 	"package": "fr.hardel.overstress.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
+		"MinecraftServerMixin",
 		"PlayerListMixin",
 		"ServerHandshakePacketListenerImplMixin",
-		"ServerLoginPacketListenerImplMixin",
-		"ServerPlayerMixin"
+		"ServerLoginPacketListenerImplMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

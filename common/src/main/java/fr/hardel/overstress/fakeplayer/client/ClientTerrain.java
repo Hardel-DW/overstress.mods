@@ -1,24 +1,58 @@
 package fr.hardel.overstress.fakeplayer.client;
 
+import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
 import net.minecraft.util.Mth;
 import net.minecraft.util.SimpleBitStorage;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.level.chunk.PalettedContainerFactory;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.Heightmap;
+import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.OptionalInt;
 
-final class ClientTerrain {
+public final class ClientTerrain {
     private static final double HALF_WIDTH = EntityTypes.PLAYER.getWidth() / 2;
-    private final Long2ObjectMap<long[]> surfaces = new Long2ObjectOpenHashMap<>();
+    private static final int COLUMNS = SectionPos.SECTION_SIZE * SectionPos.SECTION_SIZE;
+    private final Long2ObjectMap<ChunkSurface> surfaces = new Long2ObjectOpenHashMap<>();
+    private final LevelChunkSection section;
     private int minY;
     private int maxY;
     private int bits;
+
+    ClientTerrain(RegistryAccess registries) {
+        this.section = new LevelChunkSection(PalettedContainerFactory.create(registries));
+    }
+
+    public OptionalInt height(int blockX, int blockZ) {
+        ChunkSurface surface = surface(blockX, blockZ);
+        return surface == null ? OptionalInt.empty() : OptionalInt.of(surface.height(column(blockX, blockZ)) + minY);
+    }
+
+    public @Nullable BlockState top(int blockX, int blockZ) {
+        ChunkSurface surface = surface(blockX, blockZ);
+        return surface == null ? null : surface.top(column(blockX, blockZ));
+    }
+
+    public @Nullable BlockState block(BlockPos pos) {
+        OptionalInt height = height(pos.getX(), pos.getZ());
+        return height.isPresent() && height.getAsInt() - 1 == pos.getY() ? top(pos.getX(), pos.getZ()) : null;
+    }
 
     void enter(DimensionType dimension) {
         surfaces.clear();
@@ -28,11 +62,34 @@ final class ClientTerrain {
     }
 
     void receive(ClientboundLevelChunkWithLightPacket chunk) {
-        surfaces.put(ChunkPos.pack(chunk.x(), chunk.z()), chunk.chunkData().getHeightmaps().get(Heightmap.Types.MOTION_BLOCKING));
+        SimpleBitStorage heights = new SimpleBitStorage(bits, COLUMNS, chunk.chunkData().getHeightmaps().get(Heightmap.Types.MOTION_BLOCKING));
+        char[] tops = new char[COLUMNS];
+        int highest = highestTop(heights);
+        FriendlyByteBuf buffer = chunk.chunkData().getReadBuffer();
+        for (int bottom = minY; bottom <= highest; bottom += SectionPos.SECTION_SIZE) {
+            section.read(buffer);
+            readTops(heights, tops, bottom);
+        }
+
+        surfaces.put(ChunkPos.pack(chunk.x(), chunk.z()), new ChunkSurface(heights, tops));
     }
 
     void forget(ChunkPos pos) {
         surfaces.remove(pos.pack());
+    }
+
+    void update(BlockPos pos, BlockState state) {
+        ChunkSurface surface = surface(pos.getX(), pos.getZ());
+        if (surface != null) {
+            surface.update(column(pos.getX(), pos.getZ()), pos.getY() - minY, state);
+        }
+    }
+
+    void update(ClientboundSectionBlocksUpdatePacket packet) {
+        List<Pair<BlockPos, BlockState>> changes = new ArrayList<>();
+        packet.runUpdates((pos, state) -> changes.add(Pair.of(pos.immutable(), state)));
+        changes.sort(Comparator.comparingInt(change -> -change.getFirst().getY()));
+        changes.forEach(change -> update(change.getFirst(), change.getSecond()));
     }
 
     boolean holds(double x, double z) {
@@ -47,19 +104,45 @@ final class ClientTerrain {
         return minY;
     }
 
-    OptionalInt top(double x, double z) {
-        int top = minY;
+    OptionalInt ground(double x, double z) {
+        int ground = minY;
         for (int blockX = Mth.floor(x - HALF_WIDTH); blockX < Mth.ceil(x + HALF_WIDTH); blockX++) {
             for (int blockZ = Mth.floor(z - HALF_WIDTH); blockZ < Mth.ceil(z + HALF_WIDTH); blockZ++) {
-                long[] surface = surfaces.get(ChunkPos.pack(SectionPos.blockToSectionCoord(blockX), SectionPos.blockToSectionCoord(blockZ)));
-                if (surface == null) {
+                OptionalInt height = height(blockX, blockZ);
+                if (height.isEmpty()) {
                     return OptionalInt.empty();
                 }
 
-                top = Math.max(top, new SimpleBitStorage(bits, 256, surface).get((blockX & 15) + (blockZ & 15) * 16) + minY);
+                ground = Math.max(ground, height.getAsInt());
             }
         }
 
-        return OptionalInt.of(top);
+        return OptionalInt.of(ground);
+    }
+
+    private int highestTop(SimpleBitStorage heights) {
+        int highest = 0;
+        for (int column = 0; column < COLUMNS; column++) {
+            highest = Math.max(highest, heights.get(column));
+        }
+
+        return highest + minY - 1;
+    }
+
+    private void readTops(SimpleBitStorage heights, char[] tops, int bottom) {
+        for (int column = 0; column < COLUMNS; column++) {
+            int y = heights.get(column) + minY - 1 - bottom;
+            if (y >= 0 && y < SectionPos.SECTION_SIZE) {
+                tops[column] = (char) Block.getId(section.getBlockState(column & SectionPos.SECTION_MASK, y, column >> SectionPos.SECTION_BITS));
+            }
+        }
+    }
+
+    private @Nullable ChunkSurface surface(int blockX, int blockZ) {
+        return surfaces.get(ChunkPos.pack(SectionPos.blockToSectionCoord(blockX), SectionPos.blockToSectionCoord(blockZ)));
+    }
+
+    private static int column(int blockX, int blockZ) {
+        return (blockX & SectionPos.SECTION_MASK) + (blockZ & SectionPos.SECTION_MASK) * SectionPos.SECTION_SIZE;
     }
 }

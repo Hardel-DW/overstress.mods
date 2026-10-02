@@ -2,9 +2,9 @@ package fr.hardel.overstress.fakeplayer.scenario;
 
 import fr.hardel.overstress.fakeplayer.BotScenario;
 import fr.hardel.overstress.fakeplayer.BotScenarios;
+import fr.hardel.overstress.fakeplayer.BotStanding;
 import fr.hardel.overstress.fakeplayer.BotState;
 import fr.hardel.overstress.fakeplayer.client.BotPilot;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 
 public final class RandomScenario implements BotScenario {
@@ -23,11 +23,8 @@ public final class RandomScenario implements BotScenario {
     }
 
     @Override
-    public void act(ServerPlayer player, BotState state) {
-        BotScenario delegate = state.delegate;
-        if (delegate != null) {
-            delegate.act(player, state);
-        }
+    public BotStanding standing() {
+        return BotScenarios.DIMENSIONS.standing();
     }
 
     private BotScenario drawOther(RandomSource random) {

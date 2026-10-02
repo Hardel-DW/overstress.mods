@@ -50,7 +50,7 @@ public final class BotClients {
     public BotClient join(GameProfile profile, BotState state, Vec3 position, BotTransport transport) {
         BotClient client = new BotClient(profile, state, information(), server.registryAccess());
         loop.execute(() -> {
-            new BotSave(position, state.yRot()).write(server, profile.id());
+            new BotSave(position, state.yRot(), client.standing()).write(server, profile.id());
             connect(client, transport);
         });
         return client;

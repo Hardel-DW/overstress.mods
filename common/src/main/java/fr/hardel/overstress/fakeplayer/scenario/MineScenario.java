@@ -4,39 +4,68 @@ import fr.hardel.overstress.fakeplayer.BotScenario;
 import fr.hardel.overstress.fakeplayer.BotState;
 import fr.hardel.overstress.fakeplayer.client.BotPilot;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.level.EmptyBlockGetter;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
+
+import java.util.OptionalInt;
 
 public final class MineScenario implements BotScenario {
-    private static final int PERIOD_TICKS = 8;
+    private static final int TURN_TICKS = 8;
     private static final double SPEED = 0.15;
+    private static final double REACH = Attributes.BLOCK_INTERACTION_RANGE.value().getDefaultValue();
+    private static final int AHEAD = 2;
+    private static final int SPREAD = 1;
 
     @Override
     public void steer(BotPilot pilot, BotState state, RandomSource random) {
+        BlockPos target = target(pilot, state);
+        if (target != null) {
+            BlockState block = pilot.terrain().block(target);
+            pilot.hands().select(pilot.inventory().best(item -> item.getDestroySpeed(block)));
+            pilot.look(Vec3.atCenterOf(target));
+            pilot.hands().mine(target, Direction.UP);
+            return;
+        }
+
         pilot.walk(state.heading, SPEED);
         if (--state.cooldown > 0) {
             return;
         }
 
-        state.cooldown = PERIOD_TICKS;
+        state.cooldown = TURN_TICKS;
         state.heading += (random.nextDouble() - 0.5) * 0.6;
     }
 
-    @Override
-    public void act(ServerPlayer player, BotState state) {
-        if (--state.actCooldown > 0) {
-            return;
-        }
-
-        state.actCooldown = PERIOD_TICKS;
-        ServerLevel level = player.level();
-        BlockPos eye = player.blockPosition();
-        for (BlockPos pos : BlockPos.betweenClosed(eye.offset(-3, -1, -3), eye.offset(3, 2, 3))) {
-            if (!level.getBlockState(pos).isAir() && level.getBlockState(pos).getDestroySpeed(level, pos) >= 0) {
-                level.destroyBlock(pos.immutable(), true, player);
-                return;
+    private static @Nullable BlockPos target(BotPilot pilot, BotState state) {
+        int aheadX = Mth.floor(pilot.x() + Math.cos(state.heading) * AHEAD);
+        int aheadZ = Mth.floor(pilot.z() + Math.sin(state.heading) * AHEAD);
+        BlockPos nearest = null;
+        double reached = REACH * REACH;
+        for (int x = aheadX - SPREAD; x <= aheadX + SPREAD; x++) {
+            for (int z = aheadZ - SPREAD; z <= aheadZ + SPREAD; z++) {
+                BlockPos top = breakableTop(pilot, x, z);
+                double distance = top == null ? Double.MAX_VALUE : new AABB(top).distanceToSqr(pilot.eye());
+                if (distance < reached) {
+                    nearest = top;
+                    reached = distance;
+                }
             }
         }
+
+        return nearest;
+    }
+
+    private static @Nullable BlockPos breakableTop(BotPilot pilot, int x, int z) {
+        BlockState top = pilot.terrain().top(x, z);
+        OptionalInt height = pilot.terrain().height(x, z);
+        boolean breakable = top != null && top.getFluidState().isEmpty() && top.getDestroySpeed(EmptyBlockGetter.INSTANCE, BlockPos.ZERO) >= 0;
+        return breakable ? new BlockPos(x, height.getAsInt() - 1, z) : null;
     }
 }
