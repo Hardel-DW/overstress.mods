@@ -8,6 +8,9 @@
 		"ServerHandshakePacketListenerImplMixin",
 		"ServerLoginPacketListenerImplMixin"
 	],
+	"client": [
+		"IntegratedServerMixin"
+	],
 	"injectors": {
 		"defaultRequire": 1
 	},
