@@ -19,9 +19,9 @@ import java.util.OptionalInt;
 public final class SpawnerScenario implements BotScenario {
     private static final BotStanding CREATIVE = new BotStanding(GameType.CREATIVE, true, false);
     private static final int CLICK_TICKS = 2;
-    private static final int MAX_NEARBY = 300;
-    private static final double NEARBY_WIDTH = 96;
-    private static final double NEARBY_HEIGHT = 64;
+    private static final int FARM_MOBS = 64;
+    private static final double NEARBY_WIDTH = 32;
+    private static final double NEARBY_HEIGHT = 16;
     private static final double ROUND_RADIUS = 6;
     private static final double ROUND_STEP = 0.3;
     private static final double SPEED = 0.1;
@@ -41,7 +41,7 @@ public final class SpawnerScenario implements BotScenario {
         int x = Mth.floor(pilot.x()) + random.nextInt(THROW_RADIUS * 2 + 1) - THROW_RADIUS;
         int z = Mth.floor(pilot.z()) + random.nextInt(THROW_RADIUS * 2 + 1) - THROW_RADIUS;
         OptionalInt height = pilot.terrain().height(x, z);
-        if (nearby >= MAX_NEARBY || egg.isEmpty() || height.isEmpty()) {
+        if (nearby >= FARM_MOBS || egg.isEmpty() || height.isEmpty()) {
             return;
         }
 

@@ -2,19 +2,26 @@ package fr.hardel.overstress.fakeplayer.client;
 
 import fr.hardel.overstress.fakeplayer.BotStanding;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.Unit;
+import net.minecraft.util.Util;
 import net.minecraft.world.ItemStackWithSlot;
+import net.minecraft.world.entity.DropChances;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityEquipment;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.TagValueOutput;
@@ -33,12 +40,15 @@ import java.util.UUID;
 record BotSave(Vec3 position, float yRot, BotStanding standing) {
     private static final String INVENTORY = "Inventory";
     private static final String GAME_MODE = "playerGameType";
+    private static final String DEATH_LOOT_TABLE = "DeathLootTable";
+    private static final String LOOTLESS = "minecraft:empty";
+    private static final DropChances NO_DROPS = new DropChances(Util.makeEnumMap(EquipmentSlot.class, _ -> 0F));
     private static final List<ItemStackWithSlot> KIT = List.of(
         new ItemStackWithSlot(0, new ItemStack(Items.DIAMOND_PICKAXE)),
         new ItemStackWithSlot(1, new ItemStack(Items.DIAMOND_SHOVEL)),
         new ItemStackWithSlot(2, new ItemStack(Items.DIAMOND_SWORD)),
         new ItemStackWithSlot(3, new ItemStack(Items.COOKED_BEEF, Items.COOKED_BEEF.getDefaultMaxStackSize())),
-        new ItemStackWithSlot(4, new ItemStack(Items.ZOMBIE_SPAWN_EGG, Items.ZOMBIE_SPAWN_EGG.getDefaultMaxStackSize())),
+        new ItemStackWithSlot(4, lootlessZombieEggs()),
         new ItemStackWithSlot(9, new ItemStack(Items.DIAMOND_HELMET)),
         new ItemStackWithSlot(10, new ItemStack(Items.DIAMOND_LEGGINGS)),
         new ItemStackWithSlot(11, new ItemStack(Items.DIAMOND_BOOTS)));
@@ -54,6 +64,15 @@ record BotSave(Vec3 position, float yRot, BotStanding standing) {
         KIT.forEach(inventory::add);
         Path directory = server.getWorldPath(LevelResource.PLAYER_DATA_DIR);
         writeFile(output, directory, directory.resolve("%s.dat".formatted(id)));
+    }
+
+    private static ItemStack lootlessZombieEggs() {
+        CompoundTag zombie = new CompoundTag();
+        zombie.putString(DEATH_LOOT_TABLE, LOOTLESS);
+        zombie.put(Mob.TAG_DROP_CHANCES, DropChances.CODEC.encodeStart(NbtOps.INSTANCE, NO_DROPS).getOrThrow());
+        ItemStack eggs = new ItemStack(Items.ZOMBIE_SPAWN_EGG, Items.ZOMBIE_SPAWN_EGG.getDefaultMaxStackSize());
+        eggs.set(DataComponents.ENTITY_DATA, TypedEntityData.of(EntityTypes.ZOMBIE, zombie));
+        return eggs;
     }
 
     private static EntityEquipment equipment() {
