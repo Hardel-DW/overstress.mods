@@ -246,6 +246,7 @@ public final class BotClient {
 
     private void teleport(ClientboundPlayerPositionPacket position) {
         link.send(body.teleport(position));
+        terrain.land(body.position());
         hands.stopDestroying();
     }
 

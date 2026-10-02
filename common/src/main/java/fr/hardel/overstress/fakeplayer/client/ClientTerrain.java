@@ -19,6 +19,7 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainerFactory;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -90,6 +91,17 @@ public final class ClientTerrain {
         packet.runUpdates((pos, state) -> changes.add(Pair.of(pos.immutable(), state)));
         changes.sort(Comparator.comparingInt(change -> -change.getFirst().getY()));
         changes.forEach(change -> update(change.getFirst(), change.getSecond()));
+    }
+
+    void land(Vec3 feet) {
+        for (int blockX = Mth.floor(feet.x - HALF_WIDTH); blockX < Mth.ceil(feet.x + HALF_WIDTH); blockX++) {
+            for (int blockZ = Mth.floor(feet.z - HALF_WIDTH); blockZ < Mth.ceil(feet.z + HALF_WIDTH); blockZ++) {
+                ChunkSurface surface = surface(blockX, blockZ);
+                if (surface != null) {
+                    surface.land(column(blockX, blockZ), Mth.floor(feet.y) - minY);
+                }
+            }
+        }
     }
 
     boolean holds(double x, double z) {

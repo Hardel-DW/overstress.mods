@@ -7,6 +7,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import org.jspecify.annotations.Nullable;
 
 final class ChunkSurface {
+    private static final int UNKNOWN = 0;
     private final char[] tops;
     private SimpleBitStorage heights;
     private boolean ownsHeights;
@@ -36,6 +37,12 @@ final class ChunkSurface {
 
         if (!blocks && height == current - 1) {
             tops[column] = 0;
+            setHeight(column, UNKNOWN);
+        }
+    }
+
+    void land(int column, int height) {
+        if (heights.get(column) == UNKNOWN) {
             setHeight(column, height);
         }
     }
