@@ -22,7 +22,7 @@ final class Melee {
     }
 
     static boolean pursuable(BotPilot pilot, BotState state, SeenEntity target) {
-        return target.id() != state.shunned && !target.type().builtInRegistryHolder().is(EntityTypeTags.AQUATIC) && !AIRBORNE.contains(target.type());
+        return !state.abandoned.contains(target.id(), pilot.ticks()) && !target.type().builtInRegistryHolder().is(EntityTypeTags.AQUATIC) && !AIRBORNE.contains(target.type());
     }
 
     static void wield(BotPilot pilot) {
@@ -45,7 +45,8 @@ final class Melee {
         }
 
         if (++state.chase > PATIENCE_TICKS) {
-            state.shunned = target.id();
+            state.abandoned.add(target.id(), pilot.ticks());
+            state.quarry = -1;
             return;
         }
 

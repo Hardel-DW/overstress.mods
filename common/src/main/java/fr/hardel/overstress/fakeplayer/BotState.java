@@ -13,7 +13,7 @@ public final class BotState {
     public int chase;
     public double closest;
     public int hits;
-    public int shunned = -1;
+    public final AbandonedTargets abandoned = new AbandonedTargets();
     public volatile BotScenario delegate;
     public int delegateTicks;
 
