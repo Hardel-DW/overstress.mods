@@ -5,10 +5,10 @@ import fr.hardel.overstress.fakeplayer.BotState;
 import fr.hardel.overstress.fakeplayer.client.BotPilot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -50,7 +50,7 @@ public final class MineScenario implements BotScenario {
         double reached = REACH * REACH;
         for (int x = aheadX - SPREAD; x <= aheadX + SPREAD; x++) {
             for (int z = aheadZ - SPREAD; z <= aheadZ + SPREAD; z++) {
-                BlockPos top = breakableTop(pilot, x, z);
+                BlockPos top = groundTop(pilot, x, z);
                 double distance = top == null ? Double.MAX_VALUE : new AABB(top).distanceToSqr(pilot.eye());
                 if (distance < reached) {
                     nearest = top;
@@ -62,10 +62,10 @@ public final class MineScenario implements BotScenario {
         return nearest;
     }
 
-    private static @Nullable BlockPos breakableTop(BotPilot pilot, int x, int z) {
+    private static @Nullable BlockPos groundTop(BotPilot pilot, int x, int z) {
         BlockState top = pilot.terrain().top(x, z);
         OptionalInt height = pilot.terrain().height(x, z);
-        boolean breakable = top != null && top.getFluidState().isEmpty() && top.getDestroySpeed(EmptyBlockGetter.INSTANCE, BlockPos.ZERO) >= 0;
-        return breakable ? new BlockPos(x, height.getAsInt() - 1, z) : null;
+        boolean ground = top != null && (top.is(BlockTags.MINEABLE_WITH_SHOVEL) || top.is(BlockTags.MINEABLE_WITH_PICKAXE));
+        return ground ? new BlockPos(x, height.getAsInt() - 1, z) : null;
     }
 }
