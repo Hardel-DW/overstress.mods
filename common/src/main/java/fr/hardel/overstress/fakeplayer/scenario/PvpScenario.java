@@ -53,10 +53,9 @@ public final class PvpScenario implements BotScenario {
         }
 
         Melee.wield(pilot);
-        SeenEntity foe = pilot.entities().nearest(pilot.position(), AABB.ofSize(pilot.position(), SIGHT_WIDTH, SIGHT_HEIGHT, SIGHT_WIDTH),
-            pilot.entities()::hurtable);
+        SeenEntity foe = pilot.entities().nearest(pilot.position(), AABB.ofSize(pilot.position(), SIGHT_WIDTH, SIGHT_HEIGHT, SIGHT_WIDTH), entity -> pilot.entities().hurtable(entity) && Melee.pursuable(pilot, state, entity));
         if (foe != null) {
-            Melee.engage(pilot, foe, SPEED);
+            Melee.engage(pilot, state, foe, SPEED);
             return;
         }
 

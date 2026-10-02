@@ -9,6 +9,9 @@ public final class BotState {
     public volatile double heading;
     public int cooldown;
     public int deaths;
+    public int quarry = -1;
+    public int chase;
+    public int shunned = -1;
     public volatile BotScenario delegate;
     public int delegateTicks;
 
