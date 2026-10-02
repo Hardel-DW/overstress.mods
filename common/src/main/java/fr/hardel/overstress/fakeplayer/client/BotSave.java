@@ -19,6 +19,8 @@ import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.TypedEntityData;
@@ -63,6 +65,7 @@ record BotSave(Vec3 position, float yRot, BotStanding standing) {
         output.putBoolean(Entity.TAG_INVULNERABLE, standing.invulnerable());
         output.putInt(GAME_MODE, standing.gameMode().getId());
         output.store(LivingEntity.TAG_EQUIPMENT, EntityEquipment.CODEC, equipment());
+        output.store(LivingEntity.TAG_ATTRIBUTES, AttributeInstance.Packed.LIST_CODEC, List.of(new AttributeInstance.Packed(Attributes.STEP_HEIGHT, BotBody.STEP_HEIGHT, List.of())));
         ValueOutput.TypedOutputList<ItemStackWithSlot> inventory = output.list(INVENTORY, ItemStackWithSlot.CODEC);
         KIT.forEach(inventory::add);
         Path directory = server.getWorldPath(LevelResource.PLAYER_DATA_DIR);

@@ -23,7 +23,7 @@ import java.util.OptionalInt;
 
 final class BotBody {
     private static final double MAX_CLIMB_PER_TICK = 4;
-    private static final double STEP_HEIGHT = Attributes.STEP_HEIGHT.value().getDefaultValue();
+    static final double STEP_HEIGHT = 1;
     private static final double GRAVITY = Attributes.GRAVITY.value().getDefaultValue();
     private static final double JUMP = Attributes.JUMP_STRENGTH.value().getDefaultValue();
     private static final double VERTICAL_DRAG = 0.98;
@@ -197,10 +197,6 @@ final class BotBody {
         if (step > y && step <= y + STEP_HEIGHT) {
             verticalSpeed = 0;
             return step;
-        }
-
-        if (step > y && onGround) {
-            verticalSpeed = JUMP;
         }
 
         double next = y + verticalSpeed;
