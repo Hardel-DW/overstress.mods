@@ -65,14 +65,15 @@ public final class ClientTerrain {
     void receive(ClientboundLevelChunkWithLightPacket chunk) {
         SimpleBitStorage heights = new SimpleBitStorage(bits, COLUMNS, chunk.chunkData().getHeightmaps().get(Heightmap.Types.MOTION_BLOCKING));
         char[] tops = new char[COLUMNS];
+        char[] belows = new char[COLUMNS];
         int highest = highestTop(heights);
         FriendlyByteBuf buffer = chunk.chunkData().getReadBuffer();
         for (int bottom = minY; bottom <= highest; bottom += SectionPos.SECTION_SIZE) {
             section.read(buffer);
-            readTops(heights, tops, bottom);
+            readTops(heights, tops, belows, bottom);
         }
 
-        surfaces.put(ChunkPos.pack(chunk.x(), chunk.z()), new ChunkSurface(heights, tops));
+        surfaces.put(ChunkPos.pack(chunk.x(), chunk.z()), new ChunkSurface(heights, tops, belows));
     }
 
     void forget(ChunkPos pos) {
@@ -141,13 +142,21 @@ public final class ClientTerrain {
         return highest + minY - 1;
     }
 
-    private void readTops(SimpleBitStorage heights, char[] tops, int bottom) {
+    private void readTops(SimpleBitStorage heights, char[] tops, char[] belows, int bottom) {
         for (int column = 0; column < COLUMNS; column++) {
             int y = heights.get(column) + minY - 1 - bottom;
             if (y >= 0 && y < SectionPos.SECTION_SIZE) {
-                tops[column] = (char) Block.getId(section.getBlockState(column & SectionPos.SECTION_MASK, y, column >> SectionPos.SECTION_BITS));
+                tops[column] = blockId(column, y);
+            }
+
+            if (y >= 1 && y <= SectionPos.SECTION_SIZE) {
+                belows[column] = blockId(column, y - 1);
             }
         }
+    }
+
+    private char blockId(int column, int y) {
+        return (char) Block.getId(section.getBlockState(column & SectionPos.SECTION_MASK, y, column >> SectionPos.SECTION_BITS));
     }
 
     private @Nullable ChunkSurface surface(int blockX, int blockZ) {

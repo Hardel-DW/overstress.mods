@@ -6,15 +6,20 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Predicate;
+
 final class ChunkSurface {
     private static final int UNKNOWN = 0;
+    private static final Predicate<BlockState> MOTION_BLOCKING = Heightmap.Types.MOTION_BLOCKING.isOpaque();
     private final char[] tops;
+    private final char[] belows;
     private SimpleBitStorage heights;
     private boolean ownsHeights;
 
-    ChunkSurface(SimpleBitStorage heights, char[] tops) {
+    ChunkSurface(SimpleBitStorage heights, char[] tops, char[] belows) {
         this.heights = heights;
         this.tops = tops;
+        this.belows = belows;
     }
 
     int height(int column) {
@@ -28,16 +33,24 @@ final class ChunkSurface {
 
     void update(int column, int height, BlockState state) {
         int current = heights.get(column);
-        boolean blocks = Heightmap.Types.MOTION_BLOCKING.isOpaque().test(state);
+        boolean blocks = MOTION_BLOCKING.test(state);
         if (blocks && height >= current - 1) {
+            belows[column] = height == current ? tops[column] : 0;
             tops[column] = (char) Block.getId(state);
             setHeight(column, Math.max(current, height + 1));
             return;
         }
 
+        if (height == current - 2) {
+            belows[column] = blocks ? (char) Block.getId(state) : 0;
+            return;
+        }
+
         if (!blocks && height == current - 1) {
-            tops[column] = 0;
-            setHeight(column, UNKNOWN);
+            boolean grounded = MOTION_BLOCKING.test(Block.stateById(belows[column]));
+            tops[column] = grounded ? belows[column] : 0;
+            belows[column] = 0;
+            setHeight(column, grounded ? height : UNKNOWN);
         }
     }
 
