@@ -14,7 +14,7 @@ import java.util.Set;
 final class Melee {
     private static final double REACH = Attributes.ENTITY_INTERACTION_RANGE.value().getDefaultValue();
     private static final int PATIENCE_TICKS = 60;
-    private static final double PROGRESS = 0.5;
+    private static final double PROGRESS = 2;
     private static final Set<EntityType<?>> AIRBORNE = Set.of(EntityTypes.ALLAY, EntityTypes.BAT, EntityTypes.BEE, EntityTypes.BLAZE, EntityTypes.BREEZE, EntityTypes.ENDER_DRAGON,
         EntityTypes.GHAST, EntityTypes.HAPPY_GHAST, EntityTypes.PARROT, EntityTypes.PHANTOM, EntityTypes.VEX, EntityTypes.WITHER);
 
@@ -34,13 +34,11 @@ final class Melee {
         if (state.quarry != target.id()) {
             state.quarry = target.id();
             state.closest = distance;
-            state.hits = target.hits();
             state.chase = 0;
         }
 
-        if (distance < state.closest - PROGRESS || target.hits() != state.hits) {
-            state.closest = Math.min(state.closest, distance);
-            state.hits = target.hits();
+        if (distance < state.closest - PROGRESS) {
+            state.closest = distance;
             state.chase = 0;
         }
 
