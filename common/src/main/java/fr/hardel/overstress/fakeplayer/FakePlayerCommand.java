@@ -144,7 +144,7 @@ public final class FakePlayerCommand {
     }
 
     private static int transport(CommandSourceStack source) {
-        source.sendSuccess(() -> Component.literal("New bots join over the %s link".formatted(FakePlayerManager.transport().getSerializedName())), false);
+        source.sendSuccess(() -> Component.literal("New bots join over the %s link".formatted(FakePlayerManager.transport(source.getServer()).getSerializedName())), false);
         return 1;
     }
 

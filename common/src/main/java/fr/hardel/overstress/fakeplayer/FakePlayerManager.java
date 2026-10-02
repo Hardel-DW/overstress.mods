@@ -32,7 +32,7 @@ public final class FakePlayerManager {
     private static final List<ArrivalWave> waves = new CopyOnWriteArrayList<>();
     private static final AtomicInteger nextBotId = new AtomicInteger(1);
     private static final RandomSource random = RandomSource.create();
-    private static volatile BotTransport transport = BotTransport.DIRECT;
+    private static volatile @Nullable BotTransport chosenTransport;
     private static volatile @Nullable BotClients clients;
 
     private FakePlayerManager() {
@@ -45,6 +45,7 @@ public final class FakePlayerManager {
     public static void close() {
         BotClients closing = clients;
         clients = null;
+        chosenTransport = null;
         waves.clear();
         arrivals.clear();
         bots.clear();
@@ -53,12 +54,17 @@ public final class FakePlayerManager {
         }
     }
 
-    public static BotTransport transport() {
-        return transport;
+    public static BotTransport transport(MinecraftServer server) {
+        BotTransport chosen = chosenTransport;
+        if (chosen != null) {
+            return chosen;
+        }
+
+        return server.getPort() >= 0 ? BotTransport.NETWORK : BotTransport.DIRECT;
     }
 
     public static void transport(BotTransport chosen) {
-        transport = chosen;
+        chosenTransport = chosen;
     }
 
     /** A wave lands around the center; with an interval it lands one bot per interval, ticked by the server. */
@@ -84,6 +90,7 @@ public final class FakePlayerManager {
         GameProfile profile = UUIDUtil.createOfflineProfile(name);
         BotState state = new BotState(scenario, position.x(), position.z(), seed);
         Vec3 sky = new Vec3(position.x(), server.overworld().getMaxY(), position.z());
+        BotTransport transport = transport(server);
         bots.put(profile.id(), clients.join(profile, state, sky, transport));
         arrivals.addLast(profile.id());
         Overstress.LOGGER.info("{} joins at [{}, {}] running {} over the {} link", name, (int) position.x(), (int) position.z(), BotScenarios.REGISTRY.getKey(scenario),

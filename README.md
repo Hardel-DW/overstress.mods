@@ -19,7 +19,7 @@ A few things to note:
 - `/fakeplayer clear` removes every bot.
 - `/fakeplayer clear within <radius>` removes every bot around the command within the given radius.
 - `/fakeplayer clear <count> <first|last|random>` removes a given number of bots, the first ones, the last ones, or at random.
-- `/fakeplayer transport [direct|network]` shows or picks the link of the next bots. `network` needs a server that listens on a port.
+- `/fakeplayer transport [direct|network]` shows or picks the link of the next bots. Bots use `network` whenever the server listens on a port, `direct` otherwise.
 - `/fakeplayer pos` shows the position of every bot.
 - `/fakeplayer list` shows how many bots exist.
 - `/fakeplayer simulation start <simulation>` starts the simulation.
