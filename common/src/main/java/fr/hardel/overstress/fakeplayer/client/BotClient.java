@@ -32,6 +32,7 @@ import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundChunkBatchFinishedPacket;
 import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.network.protocol.game.ClientboundDamageEventPacket;
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ClientboundForgetLevelChunkPacket;
@@ -205,6 +206,7 @@ public final class BotClient {
             case ClientboundTeleportEntityPacket teleport -> entities.teleport(teleport);
             case ClientboundRemoveEntitiesPacket removed -> entities.remove(removed);
             case ClientboundEntityEventPacket event -> entities.event(event);
+            case ClientboundDamageEventPacket damage -> entities.damage(damage);
             case ClientboundContainerSetContentPacket content -> inventory.content(content);
             case ClientboundContainerSetSlotPacket slot -> inventory.slot(slot);
             case ClientboundSetCursorItemPacket cursor -> inventory.cursor(cursor);

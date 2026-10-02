@@ -11,6 +11,8 @@ public final class BotState {
     public int deaths;
     public int quarry = -1;
     public int chase;
+    public double closest;
+    public int hits;
     public int shunned = -1;
     public volatile BotScenario delegate;
     public int delegateTicks;

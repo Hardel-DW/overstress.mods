@@ -14,6 +14,7 @@ public final class SeenEntity {
     private final VecDeltaCodec codec = new VecDeltaCodec();
     private Vec3 position;
     private boolean dead;
+    private int hits;
 
     SeenEntity(int id, UUID uuid, EntityType<?> type, Vec3 position) {
         this.id = id;
@@ -39,6 +40,10 @@ public final class SeenEntity {
         return position;
     }
 
+    public int hits() {
+        return hits;
+    }
+
     public boolean alive() {
         return !dead;
     }
@@ -53,6 +58,10 @@ public final class SeenEntity {
 
     void moveTo(Vec3 position) {
         this.position = position;
+    }
+
+    void hurt() {
+        hits++;
     }
 
     void die() {

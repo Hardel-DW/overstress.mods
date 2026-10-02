@@ -13,7 +13,8 @@ import java.util.Set;
 
 final class Melee {
     private static final double REACH = Attributes.ENTITY_INTERACTION_RANGE.value().getDefaultValue();
-    private static final int PATIENCE_TICKS = 100;
+    private static final int PATIENCE_TICKS = 60;
+    private static final double PROGRESS = 0.5;
     private static final Set<EntityType<?>> AIRBORNE = Set.of(EntityTypes.ALLAY, EntityTypes.BAT, EntityTypes.BEE, EntityTypes.BLAZE, EntityTypes.BREEZE, EntityTypes.ENDER_DRAGON,
         EntityTypes.GHAST, EntityTypes.HAPPY_GHAST, EntityTypes.PARROT, EntityTypes.PHANTOM, EntityTypes.VEX, EntityTypes.WITHER);
 
@@ -29,20 +30,28 @@ final class Melee {
     }
 
     static void engage(BotPilot pilot, BotState state, SeenEntity target, double speed) {
+        double distance = Math.sqrt(target.box().distanceToSqr(pilot.eye()));
         if (state.quarry != target.id()) {
             state.quarry = target.id();
+            state.closest = distance;
+            state.hits = target.hits();
             state.chase = 0;
         }
 
-        pilot.look(target.box().getCenter());
-        if (target.box().distanceToSqr(pilot.eye()) <= REACH * REACH) {
+        if (distance < state.closest - PROGRESS || target.hits() != state.hits) {
+            state.closest = Math.min(state.closest, distance);
+            state.hits = target.hits();
             state.chase = 0;
-            pilot.hands().attack(target);
-            return;
         }
 
         if (++state.chase > PATIENCE_TICKS) {
             state.shunned = target.id();
+            return;
+        }
+
+        pilot.look(target.box().getCenter());
+        if (distance <= REACH) {
+            pilot.hands().attack(target);
             return;
         }
 
