@@ -7,9 +7,13 @@ import fr.hardel.overstress.fakeplayer.client.BotClients;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.Connection;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -86,16 +90,26 @@ public final class FakePlayerManager {
         return "Bot_%d".formatted(nextBotId.getAndIncrement());
     }
 
-    /** The bot is a headless client: it joins through the server's login, in the sky above its target, as if it had logged out there. */
+    /** The bot is a headless client: it joins through the server's login, as if it had logged out at its target, on the ground when that chunk is loaded. */
     public static void spawn(MinecraftServer server, String name, Vec3 position, BotScenario scenario, long seed) {
         GameProfile profile = UUIDUtil.createOfflineProfile(name);
         BotState state = new BotState(scenario, position.x(), position.z(), seed);
-        Vec3 sky = new Vec3(position.x(), server.overworld().getMaxY(), position.z());
         BotTransport transport = transport(server);
-        bots.put(profile.id(), clients.join(profile, state, sky, transport));
+        bots.put(profile.id(), clients.join(profile, state, arrival(server.overworld(), position), transport));
         arrivals.addLast(profile.id());
         Overstress.LOGGER.info("{} joins at [{}, {}] running {} over the {} link", name, (int) position.x(), (int) position.z(), BotScenarios.REGISTRY.getKey(scenario),
             transport.getSerializedName());
+    }
+
+    private static Vec3 arrival(ServerLevel level, Vec3 position) {
+        int x = Mth.floor(position.x());
+        int z = Mth.floor(position.z());
+        LevelChunk chunk = level.getChunkSource().getChunkNow(x >> 4, z >> 4);
+        if (chunk == null) {
+            return new Vec3(position.x(), level.getMaxY(), position.z());
+        }
+
+        return new Vec3(position.x(), chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) + 1, position.z());
     }
 
     /** Removes {@code count} bots in the given order; clearing everything drops the pending arrivals too. */
