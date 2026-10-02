@@ -8,14 +8,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * A bot runs with its own entity tick, so it inherits whatever thread owns it and makes no assumption
- * about how the server splits its work.
+ * The server side of a scenario acts in the entity tick of its bot, so it runs on whatever thread owns the player.
+ * The bot itself moves and ticks like any player, through its connection.
  */
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
-    private void overstress$tickBot(CallbackInfo callbackInfo) {
-        FakePlayerManager.tickBot((ServerPlayer) (Object) this);
+    private void overstress$actForTheBot(CallbackInfo callbackInfo) {
+        FakePlayerManager.act((ServerPlayer) (Object) this);
     }
 }

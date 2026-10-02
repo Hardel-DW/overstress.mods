@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "overstress-gametest",
+	"version": "1",
+	"name": "Overstress Game Tests",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-gametest": [
+			"fr.hardel.overstress.gametest.BotClientTest"
+		]
+	},
+	"mixins": [
+		"overstress-gametest.mixins.json"
+	],
+	"depends": {
+		"overstress": "*",
+		"fabric-gametest-api-v1": "*"
+	}
+}

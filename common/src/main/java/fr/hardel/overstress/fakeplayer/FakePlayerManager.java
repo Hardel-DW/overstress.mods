@@ -2,48 +2,69 @@ package fr.hardel.overstress.fakeplayer;
 
 import com.mojang.authlib.GameProfile;
 import fr.hardel.overstress.Overstress;
-import net.minecraft.network.DisconnectionDetails;
-import net.minecraft.network.chat.Component;
+import fr.hardel.overstress.fakeplayer.client.BotClient;
+import fr.hardel.overstress.fakeplayer.client.BotClients;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.Connection;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ClientInformation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-import java.nio.charset.StandardCharsets;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.Deque;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class FakePlayerManager {
     private static final int COMMAND_CLUSTER_RADIUS = 32;
-    private static final DisconnectionDetails LEAVE = new DisconnectionDetails(Component.literal("Overstress clear"));
-    private static final Map<UUID, BotState> bots = new ConcurrentHashMap<>();
+    private static final Map<UUID, BotClient> bots = new ConcurrentHashMap<>();
     private static final Deque<UUID> arrivals = new ConcurrentLinkedDeque<>();
     private static final List<ArrivalWave> waves = new CopyOnWriteArrayList<>();
     private static final AtomicInteger nextBotId = new AtomicInteger(1);
     private static final RandomSource random = RandomSource.create();
+    private static volatile BotTransport transport = BotTransport.DIRECT;
+    private static volatile @Nullable BotClients clients;
 
     private FakePlayerManager() {
     }
 
+    public static void open(MinecraftServer server) {
+        clients = new BotClients(server, bot -> forget(bot.profile().id()));
+    }
+
+    public static void close() {
+        BotClients closing = clients;
+        clients = null;
+        waves.clear();
+        arrivals.clear();
+        bots.clear();
+        if (closing != null) {
+            closing.close();
+        }
+    }
+
+    public static BotTransport transport() {
+        return transport;
+    }
+
+    public static void transport(BotTransport chosen) {
+        transport = chosen;
+    }
+
     /** A wave lands around the center; with an interval it lands one bot per interval, ticked by the server. */
     public static void spawn(MinecraftServer server, Vec3 center, int count, int spread, int clusterPercent, @Nullable BotScenario forced, int intervalTicks) {
-        ClusterSpread cluster = new ClusterSpread(random, clusterPercent, COMMAND_CLUSTER_RADIUS, bots.values().stream().map(state -> new Vec3(state.spawnX, 0, state.spawnZ)).toList());
+        List<Vec3> placed = bots.values().stream().map(bot -> new Vec3(bot.state().spawnX, 0, bot.state().spawnZ)).toList();
+        ClusterSpread cluster = new ClusterSpread(random, clusterPercent, COMMAND_CLUSTER_RADIUS, placed);
         ArrivalWave wave = new ArrivalWave(center, count, spread, cluster, forced, intervalTicks, random, server.getTickCount());
         if (!wave.spawnDue(server, server.getTickCount())) {
             waves.add(wave);
@@ -55,29 +76,18 @@ public final class FakePlayerManager {
     }
 
     static String nextName() {
-        return "Bot_" + nextBotId.getAndIncrement();
+        return "Bot_%d".formatted(nextBotId.getAndIncrement());
     }
 
-    /** The bot is born at its target, and joins as a server task of its own, like a real client's spawn: never inside the command or tick event that asked. */
+    /** The bot is a headless client: it joins through the server's login, in the sky above its target, as if it had logged out there. */
     public static void spawn(MinecraftServer server, String name, Vec3 position, BotScenario scenario, long seed) {
-        GameProfile profile = new GameProfile(UUID.nameUUIDFromBytes(("OverstressBot:" + name).getBytes(StandardCharsets.UTF_8)), name);
-        bots.put(profile.id(), new BotState(scenario, position.x(), position.z(), seed));
+        GameProfile profile = UUIDUtil.createOfflineProfile(name);
+        BotState state = new BotState(scenario, position.x(), position.z(), seed);
+        Vec3 sky = new Vec3(position.x(), server.overworld().getMaxY(), position.z());
+        bots.put(profile.id(), clients.join(profile, state, sky, transport));
         arrivals.addLast(profile.id());
-        server.schedule(server.wrapRunnable(() -> {
-            ClientInformation information = information(server);
-            ServerLevel level = server.overworld();
-            ServerPlayer bot = new ServerPlayer(server, level, profile, information);
-            bot.snapTo(position.x(), level.getSeaLevel(), position.z(), 0, 0);
-            server.getPlayerList().placeNewPlayer(new FakeConnection(), bot, new CommonListenerCookie(profile, 0, information, false));
-            Overstress.LOGGER.info("Spawned {} at [{}, {}] running {}", name, (int) position.x(), (int) position.z(), BotScenarios.REGISTRY.getKey(scenario));
-        }));
-    }
-
-    /** A bot sees as far as the server allows, like a client with its slider at maximum; the default would ask for 2 chunks. */
-    private static ClientInformation information(MinecraftServer server) {
-        ClientInformation defaults = ClientInformation.createDefault();
-        return new ClientInformation(defaults.language(), server.getPlayerList().getViewDistance(), defaults.chatVisibility(), defaults.chatColors(), defaults.modelCustomisation(),
-            defaults.mainHand(), defaults.textFilteringEnabled(), defaults.allowsListing(), defaults.particleStatus());
+        Overstress.LOGGER.info("{} joins at [{}, {}] running {} over the {} link", name, (int) position.x(), (int) position.z(), BotScenarios.REGISTRY.getKey(scenario),
+            transport.getSerializedName());
     }
 
     /** Removes {@code count} bots in the given order; clearing everything drops the pending arrivals too. */
@@ -89,7 +99,7 @@ public final class FakePlayerManager {
         int removed = 0;
         UUID id;
         while (removed < count && (id = take(order)) != null) {
-            if (remove(server, id)) {
+            if (remove(id)) {
                 removed++;
             }
         }
@@ -104,7 +114,7 @@ public final class FakePlayerManager {
             ServerPlayer bot = server.getPlayerList().getPlayer(id);
             if (bot != null && bot.position().multiply(1, 0, 1).distanceTo(center.multiply(1, 0, 1)) <= radius) {
                 arrivals.remove(id);
-                if (remove(server, id)) {
+                if (remove(id)) {
                     removed++;
                 }
             }
@@ -130,16 +140,20 @@ public final class FakePlayerManager {
         };
     }
 
-    /** The bot leaves as a real client does, its own server task through the listener's disconnect. */
-    private static boolean remove(MinecraftServer server, UUID id) {
-        bots.remove(id);
-        ServerPlayer bot = server.getPlayerList().getPlayer(id);
+    /** The bot leaves as a real client does: it closes its connection, and the server notices it. */
+    private static boolean remove(UUID id) {
+        BotClient bot = bots.remove(id);
         if (bot == null) {
             return false;
         }
 
-        server.schedule(server.wrapRunnable(() -> bot.connection.onDisconnect(LEAVE)));
+        bot.leave();
         return true;
+    }
+
+    private static void forget(UUID id) {
+        bots.remove(id);
+        arrivals.remove(id);
     }
 
     public static int count() {
@@ -147,28 +161,24 @@ public final class FakePlayerManager {
     }
 
     public static boolean setScenario(ServerPlayer player, BotScenario scenario) {
-        BotState state = bots.get(player.getUUID());
-        if (state == null) {
+        BotClient bot = bots.get(player.getUUID());
+        if (bot == null) {
             return false;
         }
 
-        state.scenario = scenario;
-
+        bot.state().scenario = scenario;
         return true;
     }
 
     public static int assign(int percent, BotScenario scenario) {
-        List<UUID> ids = new ArrayList<>(bots.keySet());
-        for (int index = ids.size() - 1; index > 0; index--) {
-            Collections.swap(ids, index, random.nextInt(index + 1));
+        List<BotClient> shuffled = new ArrayList<>(bots.values());
+        for (int index = shuffled.size() - 1; index > 0; index--) {
+            Collections.swap(shuffled, index, random.nextInt(index + 1));
         }
 
-        int selected = Math.round(ids.size() * percent / 100.0f);
-        for (int index = 0; index < ids.size(); index++) {
-            BotState state = bots.get(ids.get(index));
-            if (state != null) {
-                state.scenario = index < selected ? scenario : BotScenarios.IDLE;
-            }
+        int selected = Math.round(shuffled.size() * percent / 100.0f);
+        for (int index = 0; index < shuffled.size(); index++) {
+            shuffled.get(index).state().scenario = index < selected ? scenario : BotScenarios.IDLE;
         }
 
         return selected;
@@ -176,52 +186,32 @@ public final class FakePlayerManager {
 
     public static Map<UUID, BotScenario> roster() {
         Map<UUID, BotScenario> snapshot = new LinkedHashMap<>();
-        bots.forEach((id, state) -> snapshot.put(id, state.scenario));
-
+        bots.forEach((id, bot) -> snapshot.put(id, bot.state().scenario()));
         return snapshot;
     }
 
-    public static void tickBot(ServerPlayer bot) {
-        BotState state = bots.get(bot.getUUID());
-        if (state == null) {
-            return;
+    public static void act(ServerPlayer player) {
+        BotClient bot = bots.get(player.getUUID());
+        if (bot != null) {
+            bot.state().scenario().act(player, bot.state());
         }
-
-        if (!state.initialized) {
-            initialize(bot, state);
-            return;
-        }
-
-        ((FakeConnection) bot.connection.connection).acknowledgeBatches(bot.connection.chunkSender);
-        Vec3 held = bot.position();
-        bot.doTick();
-        bot.absSnapTo(held.x, held.y, held.z, bot.getYRot(), bot.getXRot());
-        state.scenario.tick(bot, state, state.random);
     }
 
     /** Null for a real player. */
     public static @Nullable ClientChunks clientChunks(ServerPlayer player) {
-        return player.connection.connection instanceof FakeConnection fake ? fake.clientChunks() : null;
+        BotClient bot = bots.get(player.getUUID());
+        return bot == null ? null : bot.chunks();
     }
 
-    private static void initialize(ServerPlayer bot, BotState state) {
-        ServerLevel level = bot.level();
-        int blockX = (int) Math.floor(state.spawnX);
-        int blockZ = (int) Math.floor(state.spawnZ);
-        if (!level.hasChunk(blockX >> 4, blockZ >> 4)) {
-            BotMovement.place(bot, state.spawnX, bot.getY(), state.spawnZ, 0);
-            return;
-        }
+    public static boolean isBot(SocketAddress address) {
+        BotClients current = clients;
+        return current != null && current.isBot(address);
+    }
 
-        double floor = level.getHeight(Heightmap.Types.MOTION_BLOCKING, blockX, blockZ);
-        BotMovement.place(bot, state.spawnX, floor, state.spawnZ, 0);
-        bot.setPermanentlyInvulnerable(true);
-        AttributeInstance stepHeight = bot.getAttribute(Attributes.STEP_HEIGHT);
-        if (stepHeight != null) {
-            stepHeight.setBaseValue(20);
+    public static void attach(Connection connection) {
+        BotClients current = clients;
+        if (current != null) {
+            current.attach(connection);
         }
-        state.heading = state.random.nextDouble() * Math.PI * 2;
-        state.initialized = true;
-        Overstress.LOGGER.info("{} placed at [{}, {}, {}]", bot.getName().getString(), (int) state.spawnX, (int) floor, (int) state.spawnZ);
     }
 }

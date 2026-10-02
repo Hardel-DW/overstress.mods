@@ -2,6 +2,7 @@ package fr.hardel.overstress.fakeplayer.scenario;
 
 import fr.hardel.overstress.fakeplayer.BotScenario;
 import fr.hardel.overstress.fakeplayer.BotState;
+import fr.hardel.overstress.fakeplayer.client.BotPilot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,13 +16,18 @@ import net.minecraft.world.phys.AABB;
 public final class SpawnerScenario implements BotScenario {
 
     @Override
-    public void tick(ServerPlayer player, BotState state, RandomSource random) {
-        if (--state.cooldown > 0) {
+    public void steer(BotPilot pilot, BotState state, RandomSource random) {
+    }
+
+    @Override
+    public void act(ServerPlayer player, BotState state) {
+        if (--state.actCooldown > 0) {
             return;
         }
 
-        state.cooldown = 20;
+        state.actCooldown = 20;
         ServerLevel level = player.level();
+        RandomSource random = player.getRandom();
         int nearby = level.getEntitiesOfClass(Mob.class, AABB.ofSize(player.position(), 96, 64, 96)).size();
         for (int spawned = 0; spawned < 10 && nearby + spawned < 300; spawned++) {
             BlockPos pos = player.blockPosition().offset(random.nextInt(17) - 8, 0, random.nextInt(17) - 8);

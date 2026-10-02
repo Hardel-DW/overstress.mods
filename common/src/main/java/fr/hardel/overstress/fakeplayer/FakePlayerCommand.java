@@ -3,6 +3,7 @@ package fr.hardel.overstress.fakeplayer;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -26,6 +27,7 @@ public final class FakePlayerCommand {
 
     private static final DynamicCommandExceptionType UNKNOWN_SCENARIO = new DynamicCommandExceptionType(id -> Component.literal("Unknown bot scenario '" + id + "'"));
     private static final DynamicCommandExceptionType NOT_A_BOT = new DynamicCommandExceptionType(name -> Component.literal("'" + name + "' is a real player, not one of our bots"));
+    private static final SimpleCommandExceptionType NO_PORT = new SimpleCommandExceptionType(Component.literal("The server listens on no port: open it to LAN or run a dedicated server"));
     private static final SuggestionProvider<CommandSourceStack> SCENARIOS = (_, builder) -> SharedSuggestionProvider.suggestResource(BotScenarios.REGISTRY.keySet(), builder);
 
     private FakePlayerCommand() {
@@ -61,6 +63,9 @@ public final class FakePlayerCommand {
                     .then(Commands.literal("first").executes(context -> clear(context.getSource(), IntegerArgumentType.getInteger(context, "count"), ClearOrder.FIRST)))
                     .then(Commands.literal("last").executes(context -> clear(context.getSource(), IntegerArgumentType.getInteger(context, "count"), ClearOrder.LAST)))
                     .then(Commands.literal("random").executes(context -> clear(context.getSource(), IntegerArgumentType.getInteger(context, "count"), ClearOrder.RANDOM)))))
+            .then(Commands.literal("transport").executes(context -> transport(context.getSource()))
+                .then(Commands.literal(BotTransport.DIRECT.getSerializedName()).executes(context -> transport(context.getSource(), BotTransport.DIRECT)))
+                .then(Commands.literal(BotTransport.NETWORK.getSerializedName()).executes(context -> transport(context.getSource(), BotTransport.NETWORK))))
             .then(Commands.literal("pos").executes(context -> positions(context.getSource())))
             .then(Commands.literal("list").executes(context -> list(context.getSource())));
     }
@@ -136,6 +141,21 @@ public final class FakePlayerCommand {
         int removed = FakePlayerManager.clearWithin(source.getServer(), source.getPosition(), radius);
         source.sendSuccess(() -> Component.literal("Removed " + removed + " bots within " + radius + " blocks"), true);
         return removed;
+    }
+
+    private static int transport(CommandSourceStack source) {
+        source.sendSuccess(() -> Component.literal("New bots join over the %s link".formatted(FakePlayerManager.transport().getSerializedName())), false);
+        return 1;
+    }
+
+    private static int transport(CommandSourceStack source, BotTransport transport) throws CommandSyntaxException {
+        if (transport == BotTransport.NETWORK && source.getServer().getPort() < 0) {
+            throw NO_PORT.create();
+        }
+
+        FakePlayerManager.transport(transport);
+        source.sendSuccess(() -> Component.literal("New bots now join over the %s link".formatted(transport.getSerializedName())), true);
+        return 1;
     }
 
     private static int positions(CommandSourceStack source) {

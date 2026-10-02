@@ -1,9 +1,8 @@
 package fr.hardel.overstress.fakeplayer.scenario;
 
-import fr.hardel.overstress.fakeplayer.BotMovement;
 import fr.hardel.overstress.fakeplayer.BotScenario;
 import fr.hardel.overstress.fakeplayer.BotState;
-import net.minecraft.server.level.ServerPlayer;
+import fr.hardel.overstress.fakeplayer.client.BotPilot;
 import net.minecraft.util.RandomSource;
 
 public final class WanderScenario implements BotScenario {
@@ -11,7 +10,7 @@ public final class WanderScenario implements BotScenario {
     private static final double SPEED = 0.2;
 
     @Override
-    public void tick(ServerPlayer player, BotState state, RandomSource random) {
-        BotMovement.walk(player, DIAGONAL, SPEED);
+    public void steer(BotPilot pilot, BotState state, RandomSource random) {
+        pilot.walk(DIAGONAL, SPEED);
     }
 }

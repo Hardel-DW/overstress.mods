@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "fr.hardel.overstress.gametest.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"ServerGamePacketListenerImplMixin",
+		"ServerPlayerMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

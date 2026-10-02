@@ -1,13 +1,13 @@
 # Overstress
 Overstress is a server mod for NeoForge and Fabric from 26.1 onwards that simulates players using scenarios, to run benchmarks, test performance with many players, or anything else.
 
-It spawns players without a client, and they are built so that their cost is close to a real player. To do that, the bots are real instances of the `ServerPlayer` class, placed through the real login path.
+Each bot is a headless client, built so that its cost is close to a real player. It logs in through the server's own login and configuration, the server ticks it through its connection like any player, and it moves by sending the movement packets a vanilla client sends, which the server checks.
 
 A few things to note:
-- **Network cost is zero.**
-- **Movement is teleportation.**
-- **There is no client.**
-- **Profiles are offline-mode.** UUIDs are derived from the bot name, so an online-mode server or an auth mod may refuse them.
+- **Two links.** `direct` hands the packets over as objects: the server pays no encoding, no compression and no socket. `network` connects over TCP to the server's own port with the vanilla pipeline, so the server pays all of it. The bot drops the bytes it receives, a real client decodes them on its own machine.
+- **Movement is a simple client physics.** The bot follows the surface of the chunks it received, falls with the vanilla gravity, glides with an elytra, and climbs up to 4 blocks per tick where a player would jump.
+- **Scenario actions run on the server.** Mining, fighting, spawning mobs and changing dimension are done by the scenario in the bot's server tick, not through the player action packets.
+- **Profiles are offline-mode.** UUIDs are derived from the bot name. Bots skip authentication and take no player slot.
 
 ## Commands
 `/fakeplayer` needs permission level 2, so gamemaster. The `scenario` command spawns bots with a specific action, `simulation` is basically an alias of scenarios with just preconfigured parameters.
@@ -19,6 +19,7 @@ A few things to note:
 - `/fakeplayer clear` removes every bot.
 - `/fakeplayer clear within <radius>` removes every bot around the command within the given radius.
 - `/fakeplayer clear <count> <first|last|random>` removes a given number of bots, the first ones, the last ones, or at random.
+- `/fakeplayer transport [direct|network]` shows or picks the link of the next bots. `network` needs a server that listens on a port.
 - `/fakeplayer pos` shows the position of every bot.
 - `/fakeplayer list` shows how many bots exist.
 - `/fakeplayer simulation start <simulation>` starts the simulation.
@@ -30,7 +31,7 @@ A few things to note:
 | --- | --- |
 | `overstress:idle` | Nothing. The baseline cost of a connected player. |
 | `overstress:wander` | Walks a diagonal at 4 blocks/s. |
-| `overstress:fly` | Flies a straight line 100 blocks over the surface at 36 blocks/s. |
+| `overstress:fly` | Glides with an elytra in a straight line 100 blocks over the surface at 36 blocks/s. |
 | `overstress:mine` | Walks at 3 blocks/s and breaks a block every 8 ticks. Block updates, drops, lighting. |
 | `overstress:fight` | Every 10 ticks, looks for a mob within 16x8x16 around itself, walks to it, then hits it under 3 blocks. |
 | `overstress:spawner` | Spawns zombies around itself, up to 300 nearby. |
@@ -56,7 +57,7 @@ A simulation is a preconfigured spawn with a duration. Its fields are bots, radi
 | `overstress:spread` | 20 | 3000 | 0% / 32 | idle | 4 min | no | off |
 
 ## Adding a scenario or a simulation
-Scenarios and simulations live in a registry, so you can add your own. Scenarios implement the `BotScenario` class while simulations implement `Simulation`.
+Scenarios and simulations live in a registry, so you can add your own. Scenarios implement the `BotScenario` class while simulations implement `Simulation`. A scenario steers the bot's client every client tick, and may act on the server in the bot's own tick.
 
 ```java
 Registry.register(BotScenarios.REGISTRY, Identifier.fromNamespaceAndPath("mymod", "afk_farm"), new AfkFarmScenario());
