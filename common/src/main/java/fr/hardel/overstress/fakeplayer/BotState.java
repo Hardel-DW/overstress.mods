@@ -1,6 +1,8 @@
 package fr.hardel.overstress.fakeplayer;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import org.jspecify.annotations.Nullable;
 
 public final class BotState {
     public final RandomSource random;
@@ -14,6 +16,7 @@ public final class BotState {
     public double closest;
     public int hits;
     public final AbandonedTargets abandoned = new AbandonedTargets();
+    public @Nullable BlockPos digging;
     public volatile BotScenario delegate;
     public int delegateTicks;
 

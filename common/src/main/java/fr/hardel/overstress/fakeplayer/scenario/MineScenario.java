@@ -25,7 +25,8 @@ public final class MineScenario implements BotScenario {
 
     @Override
     public void steer(BotPilot pilot, BotState state, RandomSource random) {
-        BlockPos target = target(pilot, state);
+        state.digging = wall(pilot, state);
+        BlockPos target = state.digging != null ? state.digging : ground(pilot, state);
         if (target != null) {
             BlockState block = pilot.terrain().block(target);
             pilot.hands().select(pilot.inventory().best(item -> item.getDestroySpeed(block)));
@@ -48,7 +49,28 @@ public final class MineScenario implements BotScenario {
         state.heading += (random.nextDouble() - 0.5) * 0.6;
     }
 
-    private static @Nullable BlockPos target(BotPilot pilot, BotState state) {
+    private static @Nullable BlockPos wall(BotPilot pilot, BotState state) {
+        if (state.digging != null && pilot.terrain().block(state.digging) != null) {
+            return state.digging;
+        }
+
+        if (!pilot.stuck()) {
+            return null;
+        }
+
+        int x = Mth.floor(pilot.x() + Math.cos(state.heading));
+        int z = Mth.floor(pilot.z() + Math.sin(state.heading));
+        BlockState top = pilot.terrain().top(x, z);
+        OptionalInt height = pilot.terrain().height(x, z);
+        if (top == null || height.isEmpty() || top.getBlock().defaultDestroyTime() < 0) {
+            return null;
+        }
+
+        BlockPos wall = new BlockPos(x, height.getAsInt() - 1, z);
+        return new AABB(wall).distanceToSqr(pilot.eye()) <= REACH * REACH ? wall : null;
+    }
+
+    private static @Nullable BlockPos ground(BotPilot pilot, BotState state) {
         int aheadX = Mth.floor(pilot.x() + Math.cos(state.heading) * AHEAD);
         int aheadZ = Mth.floor(pilot.z() + Math.sin(state.heading) * AHEAD);
         BlockPos nearest = null;
