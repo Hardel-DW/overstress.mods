@@ -4,11 +4,14 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -111,6 +114,14 @@ final class BotBody {
         xRot = next.xRot();
         placed = true;
         return new ServerboundAcceptTeleportationPacket(packet.id(), x, y, z, yRot, xRot);
+    }
+
+    void synchronize(ClientboundSetEntityDataPacket packet) {
+        for (SynchedEntityData.DataValue<?> data : packet.packedItems()) {
+            if (data.id() == Entity.DATA_SHARED_FLAGS_ID.id() && data.value() instanceof Byte flags) {
+                fallFlying = (flags & 1 << Entity.FLAG_FALL_FLYING) != 0;
+            }
+        }
     }
 
     void travel(BotPilot pilot, ClientTerrain terrain) {

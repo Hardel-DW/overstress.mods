@@ -19,6 +19,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
@@ -49,6 +50,25 @@ public final class BotClientTest {
             check(helper, bot.isFallFlying(), "the bot is not gliding");
             check(helper, bot.getStats().getValue(Stats.CUSTOM.get(Stats.AVIATE_ONE_CM)) > 0, "the server counted no glided distance");
             bot.connection.disconnect(TEST_OVER);
+        });
+    }
+
+    @GameTest(maxTicks = JOIN_TICKS)
+    public void aGliderTheServerGroundsTakesOffAgain(GameTestHelper helper) {
+        String name = join(helper, "Grounded_Probe", BotScenarios.FLY);
+        AtomicBoolean grounded = new AtomicBoolean();
+        helper.succeedWhen(() -> {
+            ServerPlayer bot = joined(helper, name);
+            check(helper, grounded.get(), "the bot has not glided yet");
+            check(helper, bot.isFallFlying(), "the bot has not taken off again since the server stopped its glide");
+            bot.connection.disconnect(TEST_OVER);
+        });
+        helper.onEachTick(() -> {
+            ServerPlayer bot = helper.getLevel().getServer().getPlayerList().getPlayerByName(name);
+            if (bot != null && bot.isFallFlying() && !grounded.get()) {
+                bot.stopFallFlying();
+                grounded.set(true);
+            }
         });
     }
 

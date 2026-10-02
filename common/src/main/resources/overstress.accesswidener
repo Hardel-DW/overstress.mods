@@ -4,3 +4,5 @@ accessible field net/minecraft/network/Connection packetListener Lnet/minecraft/
 accessible field net/minecraft/network/Connection channel Lio/netty/channel/Channel;
 accessible field net/minecraft/network/protocol/game/ClientboundMoveEntityPacket entityId I
 accessible field net/minecraft/network/protocol/game/ClientboundEntityEventPacket entityId I
+accessible field net/minecraft/world/entity/Entity DATA_SHARED_FLAGS_ID Lnet/minecraft/network/syncher/EntityDataAccessor;
+accessible field net/minecraft/world/entity/Entity FLAG_FALL_FLYING I

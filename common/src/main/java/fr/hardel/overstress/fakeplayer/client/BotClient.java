@@ -44,6 +44,7 @@ import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundRespawnPacket;
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundSetCursorItemPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
 import net.minecraft.network.protocol.game.ClientboundSetHeldSlotPacket;
 import net.minecraft.network.protocol.game.ClientboundStartConfigurationPacket;
@@ -205,6 +206,7 @@ public final class BotClient {
             case ClientboundSetCursorItemPacket cursor -> inventory.cursor(cursor);
             case ClientboundSetHeldSlotPacket held -> inventory.held(held);
             case ClientboundSetHealthPacket health -> health(health);
+            case ClientboundSetEntityDataPacket data when data.id() == entityId -> body.synchronize(data);
             default -> { }
         }
     }
