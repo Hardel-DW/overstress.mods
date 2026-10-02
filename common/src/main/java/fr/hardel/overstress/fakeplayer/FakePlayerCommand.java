@@ -37,7 +37,7 @@ public final class FakePlayerCommand {
         return Commands.literal("player")
             .then(Commands.literal("spawn")
                 .then(Commands.argument("count", IntegerArgumentType.integer(1, 5000))
-                    .then(Commands.argument("spread", IntegerArgumentType.integer(16, 100_000))
+                    .then(Commands.argument("spread", IntegerArgumentType.integer(0, 100_000))
                         .executes(context -> spawn(context, 0, null, 0))
                         .then(Commands.argument("cluster", IntegerArgumentType.integer(0, 100))
                             .executes(context -> spawn(context, IntegerArgumentType.getInteger(context, "cluster"), null, 0))
