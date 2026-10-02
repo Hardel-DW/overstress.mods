@@ -56,7 +56,7 @@ public final class PvpScenario implements BotScenario {
 
         Melee.wield(pilot);
         SeenEntity foe = pilot.entities().nearest(pilot.position(), AABB.ofSize(pilot.position(), SIGHT_WIDTH, SIGHT_HEIGHT, SIGHT_WIDTH),
-            entity -> entity.type() == EntityTypes.PLAYER || entity.type().getCategory() == MobCategory.MONSTER);
+            entity -> pilot.entities().hurtable(entity) && (entity.type() == EntityTypes.PLAYER || entity.type().getCategory() == MobCategory.MONSTER));
         if (foe != null) {
             Melee.engage(pilot, foe, SPEED);
             return;

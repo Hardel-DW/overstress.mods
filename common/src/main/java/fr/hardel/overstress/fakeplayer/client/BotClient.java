@@ -39,6 +39,8 @@ import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundLoginPacket;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundRespawnPacket;
@@ -196,6 +198,8 @@ public final class BotClient {
             case ClientboundSectionBlocksUpdatePacket updates -> terrain.update(updates);
             case ClientboundChunkBatchFinishedPacket _ -> link.send(new ServerboundChunkBatchReceivedPacket(CHUNKS_PER_TICK));
             case ClientboundAddEntityPacket added -> entities.add(added);
+            case ClientboundPlayerInfoUpdatePacket players -> entities.players(players);
+            case ClientboundPlayerInfoRemovePacket players -> entities.players(players);
             case ClientboundMoveEntityPacket move -> entities.move(move);
             case ClientboundEntityPositionSyncPacket sync -> entities.sync(sync);
             case ClientboundTeleportEntityPacket teleport -> entities.teleport(teleport);
