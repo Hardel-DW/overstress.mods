@@ -8,7 +8,6 @@ import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** What the mod does, whichever loader starts it: the loader module wires these calls to its own events. */
 public final class Overstress {
     public static final String MOD_ID = "overstress";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);

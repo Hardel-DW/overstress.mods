@@ -86,6 +86,7 @@ public final class SimulationRunner {
     private void spawnDueBots() {
         int interval = this.simulation.spawnIntervalTicks();
         int due = interval <= 0 ? this.simulation.bots() : (int) Math.min(this.simulation.bots(), elapsedTicks() / interval + 1);
+        
         while (this.spawned < due) {
             int index = this.spawned++;
             double angle = 2 * Math.PI * index / this.simulation.bots();
