@@ -49,6 +49,9 @@ record BotSave(Vec3 position, float yRot, BotStanding standing) {
         new ItemStackWithSlot(2, new ItemStack(Items.DIAMOND_SWORD)),
         new ItemStackWithSlot(3, new ItemStack(Items.COOKED_BEEF, Items.COOKED_BEEF.getDefaultMaxStackSize())),
         new ItemStackWithSlot(4, lootlessZombieEggs()),
+        new ItemStackWithSlot(5, new ItemStack(Items.DIAMOND_AXE)),
+        new ItemStackWithSlot(6, new ItemStack(Items.DIAMOND_HOE)),
+        new ItemStackWithSlot(7, new ItemStack(Items.SHEARS)),
         new ItemStackWithSlot(9, new ItemStack(Items.DIAMOND_HELMET)),
         new ItemStackWithSlot(10, new ItemStack(Items.DIAMOND_LEGGINGS)),
         new ItemStackWithSlot(11, new ItemStack(Items.DIAMOND_BOOTS)));
