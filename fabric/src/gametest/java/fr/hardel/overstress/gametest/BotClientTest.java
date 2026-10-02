@@ -44,7 +44,7 @@ public final class BotClientTest {
 
     @GameTest(maxTicks = JOIN_TICKS)
     public void aFlyingBotGlidesThroughItsMovePackets(GameTestHelper helper) {
-        String name = join(helper, "Glide_Probe", BotScenarios.FLY);
+        String name = join(helper, "Glide_Probe", BotScenarios.ELYTRA);
         helper.succeedWhen(() -> {
             ServerPlayer bot = joined(helper, name);
             check(helper, bot.isFallFlying(), "the bot is not gliding");
@@ -55,7 +55,7 @@ public final class BotClientTest {
 
     @GameTest(maxTicks = JOIN_TICKS)
     public void aGliderTheServerGroundsTakesOffAgain(GameTestHelper helper) {
-        String name = join(helper, "Grounded_Probe", BotScenarios.FLY);
+        String name = join(helper, "Grounded_Probe", BotScenarios.ELYTRA);
         AtomicBoolean grounded = new AtomicBoolean();
         helper.succeedWhen(() -> {
             ServerPlayer bot = joined(helper, name);

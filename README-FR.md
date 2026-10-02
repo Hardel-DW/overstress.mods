@@ -33,7 +33,7 @@ Certaines choses à noter :
 | --- | --- |
 | `overstress:idle` | Rien. Le coût de base d'un joueur connecté. |
 | `overstress:wander` | Marche en diagonale à 4 blocs/s. |
-| `overstress:fly` | Plane en élytre en ligne droite à une hauteur fixe de Y 350, à 36 blocs/s. |
+| `overstress:elytra` | Plane en élytre en ligne droite à une hauteur fixe de Y 350, à 36 blocs/s. |
 | `overstress:mine` | Marche à 3 blocs/s et s'arrête pour casser les blocs de sol au-dessus d'une bande de 3 de large devant lui (terre, sable, gravier, pierre et semblables), chacun avec le meilleur outil de sa hotbar, puis marche sur les drops. Block updates, drops, ramassage, lumière. |
 | `overstress:fight` | Tient son épée, marche vers le mob le plus proche qu'il voit dans 16x8x16 et le frappe à moins de 3 blocs chaque fois que son attaque est chargée. |
 | `overstress:spawner` | En créatif, tourne autour de son point de spawn et clique un œuf de zombie sur le sol à portée 10 fois par seconde, tant qu'il voit moins de 300 mobs autour de lui. |
@@ -49,14 +49,14 @@ Une simulation est un spawn préconfiguré avec une durée. Ses champs sont bots
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `overstress:smoke` | 8 | 300 | 5% / 32 | idle | 1 min | non | off |
 | `overstress:idle` | 50 | 2000 | 5% / 32 | idle | 3 min | non | off |
-| `overstress:roam` | 40 | 1500 | 5% / 32 | fly | 3 min | non | off |
+| `overstress:roam` | 40 | 1500 | 5% / 32 | elytra | 3 min | non | off |
 | `overstress:border` | 20 | 2100 | 0% / 32 | wander | 3 min | non | off |
 | `overstress:mobs` | 20 | 800 | 5% / 32 | spawner | 3 min | non | on |
 | `overstress:churn` | 60 | 5000 | 5% / 256 | churn | 10 min | non | off |
 | `overstress:ramp` | 300 | 20000 | 0% / 256 | mine | 15 min | 1 bot / 60 ticks | off |
-| `overstress:sprawl` | 100 | 50000 | 5% / 256 | fly | 10 min | 1 bot / 60 ticks | off |
-| `overstress:flight` | 1 | 0 | 0% / 32 | fly | 5 min | non | off |
-| `overstress:worldgen` | 5 | 2000 | 0% / 32 | fly | 3 min | non | off |
+| `overstress:sprawl` | 100 | 50000 | 5% / 256 | elytra | 10 min | 1 bot / 60 ticks | off |
+| `overstress:solo` | 1 | 0 | 0% / 32 | elytra | 5 min | non | off |
+| `overstress:worldgen` | 5 | 2000 | 0% / 32 | elytra | 3 min | non | off |
 | `overstress:spread` | 20 | 3000 | 0% / 32 | idle | 4 min | non | off |
 | `overstress:pvp` | 16 | 0 | 100% / 32 | pvp | 3 min | non | on |
 

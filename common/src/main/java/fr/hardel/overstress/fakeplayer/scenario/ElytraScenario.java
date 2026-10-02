@@ -5,7 +5,7 @@ import fr.hardel.overstress.fakeplayer.BotState;
 import fr.hardel.overstress.fakeplayer.client.BotPilot;
 import net.minecraft.util.RandomSource;
 
-public final class FlyScenario implements BotScenario {
+public final class ElytraScenario implements BotScenario {
     private static final double SPEED = 1.8;
     private static final int ALTITUDE = 350;
 

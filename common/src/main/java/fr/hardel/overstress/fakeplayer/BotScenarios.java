@@ -4,7 +4,7 @@ import fr.hardel.overstress.Overstress;
 import fr.hardel.overstress.fakeplayer.scenario.ChurnScenario;
 import fr.hardel.overstress.fakeplayer.scenario.DimensionsScenario;
 import fr.hardel.overstress.fakeplayer.scenario.FightScenario;
-import fr.hardel.overstress.fakeplayer.scenario.FlyScenario;
+import fr.hardel.overstress.fakeplayer.scenario.ElytraScenario;
 import fr.hardel.overstress.fakeplayer.scenario.IdleScenario;
 import fr.hardel.overstress.fakeplayer.scenario.MineScenario;
 import fr.hardel.overstress.fakeplayer.scenario.PvpScenario;
@@ -23,7 +23,7 @@ public final class BotScenarios {
     public static final Registry<BotScenario> REGISTRY = new MappedRegistry<>(KEY, Lifecycle.stable());
     public static final BotScenario IDLE = new IdleScenario();
     public static final BotScenario WANDER = new WanderScenario();
-    public static final BotScenario FLY = new FlyScenario();
+    public static final BotScenario ELYTRA = new ElytraScenario();
     public static final BotScenario MINE = new MineScenario();
     public static final BotScenario FIGHT = new FightScenario();
     public static final BotScenario SPAWNER = new SpawnerScenario();
@@ -38,7 +38,7 @@ public final class BotScenarios {
     public static void bootstrap() {
         register("idle", IDLE);
         register("wander", WANDER);
-        register("fly", FLY);
+        register("elytra", ELYTRA);
         register("mine", MINE);
         register("fight", FIGHT);
         register("spawner", SPAWNER);
