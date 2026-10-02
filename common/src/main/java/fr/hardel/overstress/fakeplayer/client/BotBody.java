@@ -42,6 +42,7 @@ final class BotBody {
     private float xRot;
     private boolean onGround;
     private boolean horizontalCollision;
+    private boolean stuck;
     private boolean fallFlying;
     private boolean takingOff;
     private Input input = Input.EMPTY;
@@ -89,7 +90,7 @@ final class BotBody {
     }
 
     boolean stuck() {
-        return horizontalCollision && onGround;
+        return stuck;
     }
 
     boolean placed() {
@@ -145,6 +146,9 @@ final class BotBody {
         horizontalCollision = blocked;
         OptionalInt support = blocked ? here : ground;
         onGround = support.isPresent() && nextY == support.getAsInt();
+        if (pilot.speed() > 0) {
+            stuck = blocked && onGround;
+        }
         fallFlying = fallFlying && !onGround;
         input = pilot.speed() > 0 ? FORWARD : Input.EMPTY;
         if (pilot.speed() > 0 && !pilot.looking()) {

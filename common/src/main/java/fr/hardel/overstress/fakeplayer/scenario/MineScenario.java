@@ -71,6 +71,7 @@ public final class MineScenario implements BotScenario {
         BlockState top = pilot.terrain().top(x, z);
         OptionalInt height = pilot.terrain().height(x, z);
         boolean ground = top != null && (top.is(BlockTags.MINEABLE_WITH_SHOVEL) || top.is(BlockTags.MINEABLE_WITH_PICKAXE));
-        return ground ? new BlockPos(x, height.getAsInt() - 1, z) : null;
+        boolean notBelowFloor = height.isPresent() && height.getAsInt() >= Mth.floor(pilot.position().y);
+        return ground && notBelowFloor ? new BlockPos(x, height.getAsInt() - 1, z) : null;
     }
 }
