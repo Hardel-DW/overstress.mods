@@ -161,8 +161,9 @@ public final class BotClient {
             return true;
         }
 
+        boolean loaded = levelLoad == LevelLoad.READY;
         tickLevelLoad();
-        if (levelLoad == LevelLoad.READY && body.placed()) {
+        if (loaded && body.placed()) {
             hands.begin();
             pilot.next();
             state.scenario().steer(pilot, state, state.random);
