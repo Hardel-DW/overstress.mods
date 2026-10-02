@@ -9,9 +9,7 @@ import fr.hardel.overstress.fakeplayer.client.ClientInventory;
 import fr.hardel.overstress.fakeplayer.client.SeenEntity;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.level.GameType;
@@ -56,7 +54,7 @@ public final class PvpScenario implements BotScenario {
 
         Melee.wield(pilot);
         SeenEntity foe = pilot.entities().nearest(pilot.position(), AABB.ofSize(pilot.position(), SIGHT_WIDTH, SIGHT_HEIGHT, SIGHT_WIDTH),
-            entity -> pilot.entities().hurtable(entity) && (entity.type() == EntityTypes.PLAYER || entity.type().getCategory() == MobCategory.MONSTER));
+            pilot.entities()::hurtable);
         if (foe != null) {
             Melee.engage(pilot, foe, SPEED);
             return;
