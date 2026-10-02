@@ -34,11 +34,13 @@ final class Melee {
         if (state.quarry != target.id()) {
             state.quarry = target.id();
             state.closest = distance;
+            state.hits = target.hits();
             state.chase = 0;
         }
 
-        if (distance < state.closest - PROGRESS) {
-            state.closest = distance;
+        if (distance < state.closest - PROGRESS || target.hits() != state.hits) {
+            state.closest = Math.min(state.closest, distance);
+            state.hits = target.hits();
             state.chase = 0;
         }
 

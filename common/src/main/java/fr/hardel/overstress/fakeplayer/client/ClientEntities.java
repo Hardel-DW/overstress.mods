@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundDamageEventPacket;
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
@@ -112,6 +113,13 @@ public final class ClientEntities {
         IntList ids = packet.entityIds();
         for (int index = 0; index < ids.size(); index++) {
             seen.remove(ids.getInt(index));
+        }
+    }
+
+    void damage(ClientboundDamageEventPacket packet) {
+        SeenEntity entity = seen.get(packet.entityId());
+        if (entity != null) {
+            entity.hurt();
         }
     }
 
