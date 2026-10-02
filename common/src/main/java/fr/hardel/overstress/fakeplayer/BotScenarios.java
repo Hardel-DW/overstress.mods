@@ -7,6 +7,7 @@ import fr.hardel.overstress.fakeplayer.scenario.FightScenario;
 import fr.hardel.overstress.fakeplayer.scenario.FlyScenario;
 import fr.hardel.overstress.fakeplayer.scenario.IdleScenario;
 import fr.hardel.overstress.fakeplayer.scenario.MineScenario;
+import fr.hardel.overstress.fakeplayer.scenario.PvpScenario;
 import fr.hardel.overstress.fakeplayer.scenario.RandomScenario;
 import fr.hardel.overstress.fakeplayer.scenario.SpawnerScenario;
 import fr.hardel.overstress.fakeplayer.scenario.WanderScenario;
@@ -29,6 +30,7 @@ public final class BotScenarios {
     public static final BotScenario DIMENSIONS = new DimensionsScenario();
     public static final BotScenario RANDOM = new RandomScenario();
     public static final BotScenario CHURN = new ChurnScenario();
+    public static final BotScenario PVP = new PvpScenario();
 
     private BotScenarios() {
     }
@@ -43,6 +45,7 @@ public final class BotScenarios {
         register("dimensions", DIMENSIONS);
         register("random", RANDOM);
         register("churn", CHURN);
+        register("pvp", PVP);
     }
 
     public static BotScenario random(RandomSource random) {

@@ -19,6 +19,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
 public final class BotClientTest {
@@ -95,6 +96,25 @@ public final class BotClientTest {
             ServerPlayer bot = joined(helper, name);
             checkNoStrayAction(helper, bot);
             check(helper, bot.level().dimension() != Level.OVERWORLD, "the bot is still in the overworld");
+            bot.connection.disconnect(TEST_OVER);
+        });
+    }
+
+    @GameTest(maxTicks = JOIN_TICKS)
+    public void aMortalBotDiesAndRespawnsThroughItsClientCommand(GameTestHelper helper) {
+        String name = join(helper, "Mortal_Probe", BotScenarios.PVP);
+        AtomicReference<ServerPlayer> struck = new AtomicReference<>();
+        helper.succeedWhen(() -> {
+            ServerPlayer bot = joined(helper, name);
+            check(helper, bot.connection.hasClientLoaded(), "the bot has not loaded its level yet");
+            if (struck.get() == null) {
+                bot.hurtServer(helper.getLevel(), bot.damageSources().generic(), Float.MAX_VALUE);
+                struck.set(bot);
+            }
+
+            check(helper, bot != struck.get() && bot.isAlive(), "the bot has not respawned yet");
+            checkNoStrayAction(helper, bot);
+            check(helper, ConnectionProbe.of(bot).overstressTest$actions() > 0, "the respawn did not come through the bot's packets");
             bot.connection.disconnect(TEST_OVER);
         });
     }

@@ -30,6 +30,7 @@ public final class Simulations {
         register("flight", new Simulation(1, 0, 0, TOUCHING, BotScenarios.FLY, 5 * SharedConstants.TICKS_PER_MINUTE, 0, false));
         register("worldgen", new Simulation(5, 2000, 0, TOUCHING, BotScenarios.FLY, 3 * SharedConstants.TICKS_PER_MINUTE, 0, false));
         register("spread", new Simulation(20, 3000, 0, TOUCHING, BotScenarios.IDLE, 4 * SharedConstants.TICKS_PER_MINUTE, 0, false));
+        register("pvp", new Simulation(16, 0, 100, TOUCHING, BotScenarios.PVP, 3 * SharedConstants.TICKS_PER_MINUTE, 0, true));
     }
 
     private static void register(String path, Simulation simulation) {
