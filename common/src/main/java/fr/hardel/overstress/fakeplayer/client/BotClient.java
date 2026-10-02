@@ -91,7 +91,7 @@ public final class BotClient {
     private final ClientTerrain terrain;
     private final BotHands hands;
     private final BotPilot pilot;
-    private volatile BotLink link;
+    private volatile DelayedLink link;
     private SocketAddress address;
     private boolean playing;
     private int entityId;
@@ -141,11 +141,11 @@ public final class BotClient {
     }
 
     void connected(BotLink link, SocketAddress address, String host, int port) {
-        this.link = link;
+        this.link = new DelayedLink(link);
         this.address = address;
-        link.send(new ClientIntentionPacket(SharedConstants.getCurrentVersion().protocolVersion(), host, port, ClientIntent.LOGIN));
-        link.switchOutbound(LoginProtocols.SERVERBOUND);
-        link.send(new ServerboundHelloPacket(profile.name(), profile.id()));
+        this.link.send(new ClientIntentionPacket(SharedConstants.getCurrentVersion().protocolVersion(), host, port, ClientIntent.LOGIN));
+        this.link.switchOutbound(LoginProtocols.SERVERBOUND);
+        this.link.send(new ServerboundHelloPacket(profile.name(), profile.id()));
     }
 
     boolean tick() {
@@ -153,6 +153,7 @@ public final class BotClient {
             return false;
         }
 
+        link.flush();
         for (Packet<?> packet = inbox.poll(); packet != null; packet = inbox.poll()) {
             handle(packet);
         }
