@@ -20,7 +20,7 @@ public final class SpawnerScenario implements BotScenario {
     private static final BotStanding CREATIVE = new BotStanding(GameType.CREATIVE, true, false);
     private static final int CLICK_TICKS = 2;
     private static final int FARM_MOBS = 64;
-    private static final double NEARBY_WIDTH = 32;
+    private static final double NEARBY_WIDTH = 64;
     private static final double NEARBY_HEIGHT = 16;
     private static final double ROUND_RADIUS = 6;
     private static final double ROUND_STEP = 0.3;

@@ -128,7 +128,7 @@ final class BotBody {
         double nextX = x + Math.cos(pilot.heading()) * pilot.speed();
         double nextZ = z + Math.sin(pilot.heading()) * pilot.speed();
         OptionalInt ground = terrain.ground(nextX, nextZ);
-        double nextY = pilot.flying() ? glide(pilot, ground) : walk(ground, terrain.minY());
+        double nextY = pilot.flying() ? glide(pilot) : walk(ground, terrain.minY());
         boolean blocked = ground.isPresent() && nextY < ground.getAsInt();
         if (!blocked) {
             x = nextX;
@@ -197,13 +197,12 @@ final class BotBody {
         return fallen;
     }
 
-    private double glide(BotPilot pilot, OptionalInt ground) {
+    private double glide(BotPilot pilot) {
         if (!fallFlying) {
             return takeOff();
         }
 
-        double target = ground.isPresent() ? ground.getAsInt() + pilot.clearance() : y;
-        return y + Mth.clamp(target - y, -MAX_CLIMB_PER_TICK, MAX_CLIMB_PER_TICK);
+        return y + Mth.clamp(pilot.altitude() - y, -MAX_CLIMB_PER_TICK, MAX_CLIMB_PER_TICK);
     }
 
     private double takeOff() {

@@ -33,7 +33,7 @@ A few things to note:
 | --- | --- |
 | `overstress:idle` | Nothing. The baseline cost of a connected player. |
 | `overstress:wander` | Walks a diagonal at 4 blocks/s. |
-| `overstress:fly` | Glides with an elytra in a straight line 100 blocks over the surface at 36 blocks/s. |
+| `overstress:fly` | Glides with an elytra in a straight line at a fixed height of Y 350, at 36 blocks/s. |
 | `overstress:mine` | Walks at 3 blocks/s and stops to break the ground blocks on top of a 3-wide band ahead of it (dirt, sand, gravel, stone and the like), each with the best tool of its hotbar, then walks over the drops. Block updates, drops, pickups, lighting. |
 | `overstress:fight` | Holds its sword, walks to the nearest mob it sees within 16x8x16 and hits it within 3 blocks each time its attack is charged. |
 | `overstress:spawner` | In creative, circles its spawn point and clicks a zombie egg on the ground within reach 10 times a second, while it sees fewer than 300 mobs around it. |

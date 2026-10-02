@@ -14,7 +14,7 @@ public final class BotPilot {
     private boolean looking;
     private double heading;
     private double speed;
-    private int clearance;
+    private int altitude;
 
     BotPilot(BotBody body, BotHands hands, ClientTerrain terrain, ClientEntities entities, ClientInventory inventory, ClientStatus status) {
         this.body = body;
@@ -31,11 +31,11 @@ public final class BotPilot {
         this.speed = speed;
     }
 
-    public void fly(double heading, double speed, int clearance) {
+    public void fly(double heading, double speed, int altitude) {
         this.flying = true;
         this.heading = heading;
         this.speed = speed;
-        this.clearance = clearance;
+        this.altitude = altitude;
     }
 
     public void walkTo(Vec3 target, double speed) {
@@ -112,7 +112,7 @@ public final class BotPilot {
         return speed;
     }
 
-    int clearance() {
-        return clearance;
+    int altitude() {
+        return altitude;
     }
 }

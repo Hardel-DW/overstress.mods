@@ -33,7 +33,7 @@ Certaines choses à noter :
 | --- | --- |
 | `overstress:idle` | Rien. Le coût de base d'un joueur connecté. |
 | `overstress:wander` | Marche en diagonale à 4 blocs/s. |
-| `overstress:fly` | Plane en élytre en ligne droite 100 blocs au-dessus de la surface à 36 blocs/s. |
+| `overstress:fly` | Plane en élytre en ligne droite à une hauteur fixe de Y 350, à 36 blocs/s. |
 | `overstress:mine` | Marche à 3 blocs/s et s'arrête pour casser les blocs de sol au-dessus d'une bande de 3 de large devant lui (terre, sable, gravier, pierre et semblables), chacun avec le meilleur outil de sa hotbar, puis marche sur les drops. Block updates, drops, ramassage, lumière. |
 | `overstress:fight` | Tient son épée, marche vers le mob le plus proche qu'il voit dans 16x8x16 et le frappe à moins de 3 blocs chaque fois que son attaque est chargée. |
 | `overstress:spawner` | En créatif, tourne autour de son point de spawn et clique un œuf de zombie sur le sol à portée 10 fois par seconde, tant qu'il voit moins de 300 mobs autour de lui. |
