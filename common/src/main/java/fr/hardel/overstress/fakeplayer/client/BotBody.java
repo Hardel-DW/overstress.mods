@@ -23,6 +23,7 @@ import java.util.OptionalInt;
 
 final class BotBody {
     private static final double MAX_CLIMB_PER_TICK = 4;
+    private static final double STEP_HEIGHT = Attributes.STEP_HEIGHT.value().getDefaultValue();
     private static final double GRAVITY = Attributes.GRAVITY.value().getDefaultValue();
     private static final double JUMP = Attributes.JUMP_STRENGTH.value().getDefaultValue();
     private static final double VERTICAL_DRAG = 0.98;
@@ -87,6 +88,10 @@ final class BotBody {
         return new Vec3(x, y + EYE_HEIGHT, z);
     }
 
+    boolean stuck() {
+        return horizontalCollision && onGround;
+    }
+
     boolean placed() {
         return placed;
     }
@@ -128,7 +133,8 @@ final class BotBody {
         double nextX = x + Math.cos(pilot.heading()) * pilot.speed();
         double nextZ = z + Math.sin(pilot.heading()) * pilot.speed();
         OptionalInt ground = terrain.ground(nextX, nextZ);
-        double nextY = pilot.flying() ? glide(pilot, ground) : walk(ground, terrain.minY());
+        OptionalInt here = terrain.ground(x, z);
+        double nextY = pilot.flying() ? glide(pilot, ground) : walk(here, ground, terrain.minY());
         boolean blocked = ground.isPresent() && nextY < ground.getAsInt();
         if (!blocked) {
             x = nextX;
@@ -137,7 +143,8 @@ final class BotBody {
 
         y = nextY;
         horizontalCollision = blocked;
-        onGround = !blocked && ground.isPresent() && nextY == ground.getAsInt();
+        OptionalInt support = blocked ? here : ground;
+        onGround = support.isPresent() && nextY == support.getAsInt();
         fallFlying = fallFlying && !onGround;
         input = pilot.speed() > 0 ? FORWARD : Input.EMPTY;
         if (pilot.speed() > 0 && !pilot.looking()) {
@@ -180,21 +187,31 @@ final class BotBody {
         lastHorizontalCollision = horizontalCollision;
     }
 
-    private double walk(OptionalInt ground, int minY) {
-        if (ground.isEmpty()) {
+    private double walk(OptionalInt here, OptionalInt ahead, int minY) {
+        if (ahead.isEmpty()) {
             verticalSpeed = 0;
             return Math.max(minY, y - SINK_OVER_UNRECEIVED_CHUNK);
         }
 
-        if (ground.getAsInt() > y) {
+        int step = ahead.getAsInt();
+        if (step > y && step <= y + STEP_HEIGHT) {
             verticalSpeed = 0;
-            return Math.min(ground.getAsInt(), y + MAX_CLIMB_PER_TICK);
+            return step;
+        }
+
+        if (step > y && onGround) {
+            verticalSpeed = JUMP;
+        }
+
+        double next = y + verticalSpeed;
+        int floor = next >= step ? step : here.orElse(step);
+        if (next <= floor) {
+            verticalSpeed = 0;
+            return floor;
         }
 
         verticalSpeed = (verticalSpeed - GRAVITY) * VERTICAL_DRAG;
-        double fallen = Math.max(ground.getAsInt(), y + verticalSpeed);
-        verticalSpeed = fallen == ground.getAsInt() ? 0 : verticalSpeed;
-        return fallen;
+        return next;
     }
 
     private double glide(BotPilot pilot, OptionalInt ground) {

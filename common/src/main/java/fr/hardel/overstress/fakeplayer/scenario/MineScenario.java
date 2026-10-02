@@ -35,6 +35,11 @@ public final class MineScenario implements BotScenario {
         }
 
         pilot.walk(state.heading, SPEED);
+        if (pilot.stuck()) {
+            state.heading += Math.PI / 2 + random.nextDouble() * Math.PI;
+            return;
+        }
+
         if (--state.cooldown > 0) {
             return;
         }

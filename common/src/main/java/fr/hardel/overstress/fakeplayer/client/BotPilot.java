@@ -57,6 +57,10 @@ public final class BotPilot {
         return body.z();
     }
 
+    public boolean stuck() {
+        return body.stuck();
+    }
+
     public Vec3 position() {
         return body.position();
     }
