@@ -9,7 +9,6 @@ import net.minecraft.network.Connection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.NameAndId;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -84,6 +83,13 @@ public final class FakePlayerManager {
 
     public static void tick(MinecraftServer server) {
         waves.removeIf(wave -> wave.spawnDue(server, server.getTickCount()));
+        bots.forEach((id, bot) -> assist(server.getPlayerList().getPlayer(id), bot));
+    }
+
+    private static void assist(@Nullable ServerPlayer player, BotClient bot) {
+        if (player != null) {
+            bot.state().scenario().assist(player, bot.state());
+        }
     }
 
     static String nextName() {
@@ -94,6 +100,7 @@ public final class FakePlayerManager {
     public static void spawn(MinecraftServer server, String name, Vec3 position, BotScenario scenario, long seed) {
         GameProfile profile = UUIDUtil.createOfflineProfile(name);
         BotState state = new BotState(scenario, position.x(), position.z(), seed);
+        scenario.prepare(server.overworld(), state);
         BotTransport transport = transport(server);
         bots.put(profile.id(), clients.join(profile, state, arrival(server.overworld(), position), transport));
         arrivals.addLast(profile.id());
@@ -210,11 +217,6 @@ public final class FakePlayerManager {
         Map<UUID, BotScenario> snapshot = new LinkedHashMap<>();
         bots.forEach((id, bot) -> snapshot.put(id, bot.state().scenario()));
         return snapshot;
-    }
-
-    public static boolean isOperator(NameAndId nameAndId) {
-        BotClient bot = bots.get(nameAndId.id());
-        return bot != null && bot.standing().operator();
     }
 
     /** Null for a real player. */

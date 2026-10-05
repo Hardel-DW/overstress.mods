@@ -17,7 +17,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.OptionalInt;
 
 public final class SpawnerScenario implements BotScenario {
-    private static final BotStanding CREATIVE = new BotStanding(GameType.CREATIVE, true, false);
+    private static final BotStanding CREATIVE = new BotStanding(GameType.CREATIVE, true);
     private static final int CLICK_TICKS = 2;
     private static final int FARM_MOBS = 64;
     private static final double NEARBY_WIDTH = 64;

@@ -18,7 +18,7 @@ import net.minecraft.world.phys.AABB;
 import java.util.OptionalInt;
 
 public final class PvpScenario implements BotScenario {
-    private static final BotStanding MORTAL = new BotStanding(GameType.SURVIVAL, false, false);
+    private static final BotStanding MORTAL = new BotStanding(GameType.SURVIVAL, false);
     private static final String DEFEAT = "gg";
     private static final int HUNGRY = 14;
     private static final double SPEED = 0.3;

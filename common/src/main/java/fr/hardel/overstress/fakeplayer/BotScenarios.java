@@ -2,11 +2,13 @@ package fr.hardel.overstress.fakeplayer;
 
 import fr.hardel.overstress.Overstress;
 import fr.hardel.overstress.fakeplayer.scenario.ChurnScenario;
-import fr.hardel.overstress.fakeplayer.scenario.DimensionsScenario;
-import fr.hardel.overstress.fakeplayer.scenario.FightScenario;
 import fr.hardel.overstress.fakeplayer.scenario.ElytraScenario;
+import fr.hardel.overstress.fakeplayer.scenario.EndGatewayScenario;
+import fr.hardel.overstress.fakeplayer.scenario.EndPortalScenario;
+import fr.hardel.overstress.fakeplayer.scenario.FightScenario;
 import fr.hardel.overstress.fakeplayer.scenario.IdleScenario;
 import fr.hardel.overstress.fakeplayer.scenario.MineScenario;
+import fr.hardel.overstress.fakeplayer.scenario.NetherPortalScenario;
 import fr.hardel.overstress.fakeplayer.scenario.PvpScenario;
 import fr.hardel.overstress.fakeplayer.scenario.RandomScenario;
 import fr.hardel.overstress.fakeplayer.scenario.SpawnerScenario;
@@ -27,7 +29,9 @@ public final class BotScenarios {
     public static final BotScenario MINE = new MineScenario();
     public static final BotScenario FIGHT = new FightScenario();
     public static final BotScenario SPAWNER = new SpawnerScenario();
-    public static final BotScenario DIMENSIONS = new DimensionsScenario();
+    public static final BotScenario NETHER = new NetherPortalScenario();
+    public static final BotScenario END = new EndPortalScenario();
+    public static final BotScenario GATEWAY = new EndGatewayScenario();
     public static final BotScenario RANDOM = new RandomScenario();
     public static final BotScenario CHURN = new ChurnScenario();
     public static final BotScenario PVP = new PvpScenario();
@@ -42,7 +46,9 @@ public final class BotScenarios {
         register("mine", MINE);
         register("fight", FIGHT);
         register("spawner", SPAWNER);
-        register("dimensions", DIMENSIONS);
+        register("nether", NETHER);
+        register("end", END);
+        register("gateway", GATEWAY);
         register("random", RANDOM);
         register("churn", CHURN);
         register("pvp", PVP);

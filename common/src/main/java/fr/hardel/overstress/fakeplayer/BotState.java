@@ -1,6 +1,10 @@
 package fr.hardel.overstress.fakeplayer;
 
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public final class BotState {
     public final RandomSource random;
@@ -9,6 +13,12 @@ public final class BotState {
     public volatile double heading;
     public int cooldown;
     public int deaths;
+    public double detour;
+    public volatile @Nullable Vec3 portal;
+    public volatile @Nullable Vec3 home;
+    public @Nullable Vec3 last;
+    public volatile boolean ready;
+    public volatile @Nullable ResourceKey<Level> dimension;
     public int quarry = -1;
     public int chase;
     public double closest;

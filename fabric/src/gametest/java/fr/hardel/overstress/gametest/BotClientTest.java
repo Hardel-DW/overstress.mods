@@ -14,7 +14,6 @@ import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
@@ -105,17 +104,6 @@ public final class BotClientTest {
             ServerPlayer bot = joined(helper, name);
             checkNoStrayAction(helper, bot);
             check(helper, bot.getStats().getValue(Stats.ITEM_USED.get(Items.ZOMBIE_SPAWN_EGG)) > 0, "the bot used no zombie spawn egg");
-            bot.connection.disconnect(TEST_OVER);
-        });
-    }
-
-    @GameTest(maxTicks = JOIN_TICKS)
-    public void aTravellingBotChangesDimensionOnlyThroughItsCommands(GameTestHelper helper) {
-        String name = join(helper, "Travel_Probe", BotScenarios.DIMENSIONS);
-        helper.succeedWhen(() -> {
-            ServerPlayer bot = joined(helper, name);
-            checkNoStrayAction(helper, bot);
-            check(helper, bot.level().dimension() != Level.OVERWORLD, "the bot is still in the overworld");
             bot.connection.disconnect(TEST_OVER);
         });
     }

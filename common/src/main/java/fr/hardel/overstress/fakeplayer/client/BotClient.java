@@ -194,6 +194,8 @@ public final class BotClient {
             case ClientboundLoginPacket login -> login(login);
             case ClientboundRespawnPacket respawn -> enter(entityId, respawn.commonPlayerSpawnInfo());
             case ClientboundGameEventPacket event when event.getEvent() == ClientboundGameEventPacket.LEVEL_CHUNKS_LOAD_START -> levelLoad = LevelLoad.WAITING_FOR_CHUNK;
+            case ClientboundGameEventPacket event when event.getEvent() == ClientboundGameEventPacket.WIN_GAME ->
+                link.send(new ServerboundClientCommandPacket(ServerboundClientCommandPacket.Action.PERFORM_RESPAWN));
             case ClientboundPlayerPositionPacket position -> teleport(position);
             case ClientboundLevelChunkWithLightPacket chunk -> terrain.receive(chunk);
             case ClientboundForgetLevelChunkPacket forget -> terrain.forget(forget.pos());
