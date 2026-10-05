@@ -42,7 +42,8 @@ public final class ClientTerrain {
 
     public OptionalInt height(int blockX, int blockZ) {
         ChunkSurface surface = surface(blockX, blockZ);
-        return surface == null ? OptionalInt.empty() : OptionalInt.of(surface.height(column(blockX, blockZ)) + minY);
+        int column = column(blockX, blockZ);
+        return surface == null || !surface.known(column) ? OptionalInt.empty() : OptionalInt.of(surface.height(column) + minY);
     }
 
     public @Nullable BlockState top(int blockX, int blockZ) {
