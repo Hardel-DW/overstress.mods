@@ -135,8 +135,9 @@ final class BotBody {
         double nextZ = z + Math.sin(pilot.heading()) * pilot.speed();
         OptionalInt ground = terrain.ground(nextX, nextZ);
         OptionalInt here = terrain.ground(x, z);
-        double nextY = pilot.flying() ? glide(pilot, ground) : walk(here, ground, terrain.minY());
-        boolean blocked = ground.isPresent() && nextY < ground.getAsInt();
+        boolean drop = !pilot.flying() && here.isPresent() && ground.isPresent() && ground.getAsInt() < here.getAsInt() - STEP_HEIGHT;
+        double nextY = pilot.flying() ? glide(pilot, ground) : walk(here, drop ? here : ground, terrain.minY());
+        boolean blocked = drop || ground.isPresent() && nextY < ground.getAsInt();
         if (!blocked) {
             x = nextX;
             z = nextZ;
