@@ -7,8 +7,8 @@ A few things to note:
 - **Two links.** `direct` hands the packets over as objects: the server pays no encoding, no compression and no socket. `network` connects over TCP to the server's own port with the vanilla pipeline, so the server pays all of it. The bot drops the bytes it receives, a real client decodes them on its own machine.
 - **Movement is a simple client physics.** The bot follows the surface of the chunks it received, falls with the vanilla gravity, glides with an elytra, steps up a full block like with step assist, and digs through or turns away from a higher wall.
 - **Every action is a packet.** A bot mines by holding its attack button on a block: start, the vanilla progress of its tool tick after tick, stop, a punch each tick. It hits an entity with the attack packet once its attack is charged, uses an item or clicks a block with the use packets, picks its hotbar slot, moves items with inventory clicks, chats and runs commands. Pickups and deaths are the server's own: a bot walks over its drops, and a dead bot asks to respawn at once.
-- **The client knows what its packets told it.** The surface of each chunk it holds, the height and the top block of every column, read from the chunk packet and kept up to date by the block updates; the type and position of every entity the server shows it; its inventory, health and food. It never reads the server's world, so it mines only a top block it knows, one layer deep.
-- **Bots log in with a kit.** Every bot joins as if it had logged out with an elytra on, diamond tools, a sword, armor in its inventory, food and zombie eggs. It is invulnerable and in survival, except where its scenario says otherwise: `spawner` plays in creative, `dimensions` and `random` have the command rights of a gamemaster, `pvp` is mortal.
+- **The client knows what its packets told it.** The surface of each chunk it holds: the height of every column, its top block and the block under it, read from the chunk packet and kept up to date by the block updates; the type and position of every entity the server shows it; its inventory, health and food. It never reads the server's world, so it only mines a top block it knows.
+- **Bots log in with a kit.** Every bot joins as if it had logged out with an elytra on, diamond tools, a sword, armor in its inventory, food and zombie eggs. It is invulnerable and in survival, except where its scenario says otherwise: `spawner` plays in creative, `pvp` is mortal.
 - **Profiles are offline-mode.** UUIDs are derived from the bot name. Bots skip authentication and take no player slot.
 
 ## Commands
@@ -34,12 +34,14 @@ A few things to note:
 | `overstress:idle` | Nothing. The baseline cost of a connected player. |
 | `overstress:wander` | Walks a diagonal at 4 blocks/s. |
 | `overstress:elytra` | Glides with an elytra in a straight line at a fixed height of Y 350, at 36 blocks/s. |
-| `overstress:mine` | Walks at 3 blocks/s and stops to break the ground blocks on top of a 3-wide band ahead of it (dirt, sand, gravel, stone and the like), each with the best tool of its hotbar, then walks over the drops. Block updates, drops, pickups, lighting. |
+| `overstress:mine` | Walks straight ahead on the surface at 3 blocks/s and, beside its path, breaks the top block of the column on its left or right when it is not lower than its path, each with the best tool of its hotbar. It never digs its own path, so it stays on the surface: it walks on water like any walker, never steps off a drop it could not step back up, and walks around a wall higher than a block. Block updates, drops, lighting. |
 | `overstress:fight` | Holds its sword, walks to the nearest mob it sees within 16x8x16 and hits it within 3 blocks each time its attack is charged. |
 | `overstress:spawner` | In creative, circles its spawn point and clicks a zombie egg on the ground within reach 10 times a second, while it sees fewer than 300 mobs around it. |
-| `overstress:dimensions` | Wanders, and every 15 seconds runs `/execute in <next dimension> run tp` to its spawn point at y 128. |
+| `overstress:nether` | Finds a nether portal built for it next to its spawn point, walks into it, walks 5 seconds away from the portal it arrives in, comes back into it, and so on between the overworld and the nether. |
+| `overstress:end` | Walks into an end portal built for it next to its spawn point. In the End, the server kills the dragon and, after 5 seconds of walking, moves the bot onto the exit portal; the bot skips the credits like a client and lands back at the world spawn, from where the server brings it back next to its portal, and so on. |
+| `overstress:gateway` | Reaches the End through an end portal built for it, then hops through the end gateways: the server kills the dragon and, after each 5 seconds of walking, moves the bot into the nearest gateway, on the main island or next to where it arrived on the outer islands. |
 | `overstress:pvp` | Mortal. Wears its armor through inventory clicks, holds its sword, chases the nearest player or monster it sees and hits it when charged, eats when hungry. When it dies it respawns at once and says gg. |
-| `overstress:churn` | Walks back and forth between its spawn point and 450 blocks away at 30 blocks/s. Loads and unloads the same chunks in a loop. |
+| `overstress:churn` | Glides with an elytra at Y 350 and 36 blocks/s, 450 blocks along its heading, then 450 blocks back, in a loop. Loads and unloads the same chunks over and over. |
 | `overstress:random` | Runs another scenario for a minute, then draws a new one. |
 
 ## Simulations
