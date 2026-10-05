@@ -16,14 +16,6 @@ loom {
 	accessWidenerPath = project(':common').file('src/main/resources/overstress.accesswidener')
 }
 
-fabricApi {
-	configureTests {
-		createSourceSet = true
-		modId = "overstress-gametest"
-		eula = true
-	}
-}
-
 tasks.named('compileJava') {
 	source(project(':common').sourceSets.main.allJava)
 }
