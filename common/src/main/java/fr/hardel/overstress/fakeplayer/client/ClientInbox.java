@@ -4,6 +4,7 @@ import fr.hardel.overstress.fakeplayer.ClientChunks;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundForgetLevelChunkPacket;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.network.protocol.game.ClientboundRespawnPacket;
 import net.minecraft.world.level.ChunkPos;
 
 import java.util.Queue;
@@ -24,6 +25,7 @@ final class ClientInbox {
                 receivedChunks.incrementAndGet();
             }
             case ClientboundForgetLevelChunkPacket forget -> heldChunks.remove(forget.pos().pack());
+            case ClientboundRespawnPacket _ -> heldChunks.clear();
             default -> { }
         }
 
