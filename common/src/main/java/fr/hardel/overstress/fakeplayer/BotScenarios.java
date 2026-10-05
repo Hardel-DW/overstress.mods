@@ -3,7 +3,6 @@ package fr.hardel.overstress.fakeplayer;
 import fr.hardel.overstress.Overstress;
 import fr.hardel.overstress.fakeplayer.scenario.ChurnScenario;
 import fr.hardel.overstress.fakeplayer.scenario.ElytraScenario;
-import fr.hardel.overstress.fakeplayer.scenario.EndGatewayScenario;
 import fr.hardel.overstress.fakeplayer.scenario.EndPortalScenario;
 import fr.hardel.overstress.fakeplayer.scenario.FightScenario;
 import fr.hardel.overstress.fakeplayer.scenario.IdleScenario;
@@ -30,8 +29,8 @@ public final class BotScenarios {
     public static final BotScenario FIGHT = new FightScenario();
     public static final BotScenario SPAWNER = new SpawnerScenario();
     public static final BotScenario NETHER = new NetherPortalScenario();
-    public static final BotScenario END = new EndPortalScenario();
-    public static final BotScenario GATEWAY = new EndGatewayScenario();
+    public static final BotScenario END = EndPortalScenario.EXIT;
+    public static final BotScenario GATEWAY = EndPortalScenario.GATEWAYS;
     public static final BotScenario RANDOM = new RandomScenario();
     public static final BotScenario CHURN = new ChurnScenario();
     public static final BotScenario PVP = new PvpScenario();

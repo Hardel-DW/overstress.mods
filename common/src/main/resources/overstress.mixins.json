@@ -5,7 +5,8 @@
 	"mixins": [
 		"PlayerListMixin",
 		"ServerHandshakePacketListenerImplMixin",
-		"ServerLoginPacketListenerImplMixin"
+		"ServerLoginPacketListenerImplMixin",
+		"ServerPlayerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

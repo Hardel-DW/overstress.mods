@@ -83,11 +83,11 @@ public final class FakePlayerManager {
 
     public static void tick(MinecraftServer server) {
         waves.removeIf(wave -> wave.spawnDue(server, server.getTickCount()));
-        bots.forEach((id, bot) -> assist(server.getPlayerList().getPlayer(id), bot));
     }
 
-    private static void assist(@Nullable ServerPlayer player, BotClient bot) {
-        if (player != null) {
+    public static void assist(ServerPlayer player) {
+        BotClient bot = bots.get(player.getUUID());
+        if (bot != null) {
             bot.state().scenario().assist(player, bot.state());
         }
     }
@@ -100,7 +100,6 @@ public final class FakePlayerManager {
     public static void spawn(MinecraftServer server, String name, Vec3 position, BotScenario scenario, long seed) {
         GameProfile profile = UUIDUtil.createOfflineProfile(name);
         BotState state = new BotState(scenario, position.x(), position.z(), seed);
-        scenario.prepare(server.overworld(), state);
         BotTransport transport = transport(server);
         bots.put(profile.id(), clients.join(profile, state, arrival(server.overworld(), position), transport));
         arrivals.addLast(profile.id());

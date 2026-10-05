@@ -6,8 +6,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
@@ -15,30 +13,29 @@ import org.jspecify.annotations.Nullable;
 
 final class EndAssist {
     private static final int PORTAL_OFFSET = 4;
-    private static final int PORTAL_SIZE = 3;
-    private static final double HOME_RADIUS = 64;
+    private static final BlockPos EXIT_CENTER = new BlockPos(0, 65, 0);
     private static final int EXIT_RADIUS = 3;
-    private static final int EXIT_MIN_Y = 30;
-    private static final int EXIT_MAX_Y = 100;
+    private static final int EXIT_HEIGHT = 35;
     private static final int GATEWAYS = 20;
     private static final int GATEWAY_RADIUS = 96;
     private static final int GATEWAY_Y = 75;
     private static final int EXIT_GATEWAY_SEARCH = 12;
+    private static final double MAIN_ISLAND = 200;
 
     private EndAssist() {
     }
 
-    static void buildPortal(ServerLevel level, BotState state) {
-        int x = Mth.floor(state.spawnX) + PORTAL_OFFSET;
-        int z = Mth.floor(state.spawnZ);
-        int floor = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-        for (int dx = 0; dx < PORTAL_SIZE; dx++) {
-            for (int dz = 0; dz < PORTAL_SIZE; dz++) {
-                level.setBlockAndUpdate(new BlockPos(x + dx, floor, z + dz), Blocks.END_PORTAL.defaultBlockState());
-            }
+    /** The end portal block of the bot, set next to it the first time it is needed. */
+    static BlockPos home(ServerLevel level, ServerPlayer player, BotState state) {
+        BlockPos home = state.home;
+        if (home == null) {
+            BlockPos beside = player.blockPosition().east(PORTAL_OFFSET);
+            home = new BlockPos(beside.getX(), level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, beside.getX(), beside.getZ()), beside.getZ());
+            level.setBlockAndUpdate(home, Blocks.END_PORTAL.defaultBlockState());
+            state.home = home;
         }
 
-        state.home = Vec3.atBottomCenterOf(new BlockPos(x + 1, floor, z + 1));
+        return home;
     }
 
     static void killDragons(ServerLevel level) {
@@ -49,52 +46,27 @@ final class EndAssist {
         }
     }
 
-    static void bringHome(ServerPlayer player, BotState state) {
-        Vec3 home = state.home;
-        if (player.level().dimension() == Level.OVERWORLD && home != null && player.position().distanceToSqr(home) > HOME_RADIUS * HOME_RADIUS) {
-            player.teleportTo(home.x - PORTAL_OFFSET, home.y, home.z);
-        }
+    static @Nullable BlockPos exitPortal(ServerLevel level, ServerPlayer player) {
+        return Portals.find(level, EXIT_CENTER, EXIT_RADIUS, EXIT_HEIGHT, Blocks.END_PORTAL);
     }
 
-    static @Nullable BlockPos exitPortal(ServerLevel level) {
-        for (int y = EXIT_MIN_Y; y <= EXIT_MAX_Y; y++) {
-            BlockPos found = around(level, new BlockPos(0, y, 0), EXIT_RADIUS, 0, Blocks.END_PORTAL);
-            if (found != null) {
-                return found;
-            }
-        }
-
-        return null;
+    static @Nullable BlockPos gateway(ServerLevel level, ServerPlayer player) {
+        Vec3 from = player.position();
+        return from.horizontalDistanceSqr() < MAIN_ISLAND * MAIN_ISLAND
+            ? ringGateway(level, from)
+            : Portals.find(level, player.blockPosition(), EXIT_GATEWAY_SEARCH, EXIT_GATEWAY_SEARCH, Blocks.END_GATEWAY);
     }
 
-    static @Nullable BlockPos ringGateway(ServerLevel level, Vec3 from) {
+    private static @Nullable BlockPos ringGateway(ServerLevel level, Vec3 from) {
         BlockPos nearest = null;
         for (int index = 0; index < GATEWAYS; index++) {
             double angle = 2.0 * (-Math.PI + Math.PI / GATEWAYS * index);
             BlockPos pos = new BlockPos(Mth.floor(GATEWAY_RADIUS * Math.cos(angle)), GATEWAY_Y, Mth.floor(GATEWAY_RADIUS * Math.sin(angle)));
-            if (level.getBlockState(pos).is(Blocks.END_GATEWAY) && (nearest == null || pos.distToCenterSqr(from) < nearest.distToCenterSqr(from))) {
+            if (level.isLoaded(pos) && level.getBlockState(pos).is(Blocks.END_GATEWAY) && (nearest == null || pos.distToCenterSqr(from) < nearest.distToCenterSqr(from))) {
                 nearest = pos;
             }
         }
 
         return nearest;
-    }
-
-    static @Nullable BlockPos gatewayNear(ServerLevel level, Vec3 center) {
-        return around(level, BlockPos.containing(center), EXIT_GATEWAY_SEARCH, EXIT_GATEWAY_SEARCH, Blocks.END_GATEWAY);
-    }
-
-    static void enter(ServerPlayer player, BlockPos block) {
-        player.teleportTo(block.getX() + 0.5, block.getY(), block.getZ() + 0.5);
-    }
-
-    private static @Nullable BlockPos around(ServerLevel level, BlockPos center, int horizontal, int vertical, Block block) {
-        for (BlockPos pos : BlockPos.betweenClosed(center.offset(-horizontal, -vertical, -horizontal), center.offset(horizontal, vertical, horizontal))) {
-            if (level.getBlockState(pos).is(block)) {
-                return pos.immutable();
-            }
-        }
-
-        return null;
     }
 }

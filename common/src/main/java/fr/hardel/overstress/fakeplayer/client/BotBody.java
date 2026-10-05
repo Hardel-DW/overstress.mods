@@ -31,6 +31,8 @@ final class BotBody {
     private static final double MOVE_THRESHOLD = 2.0E-4;
     private static final int POSITION_REMINDER_TICKS = 20;
     private static final Input FORWARD = new Input(true, false, false, false, false, false, false);
+    private static final double STEP_REACH = 0.5 + ClientTerrain.HALF_WIDTH;
+    private static final double DROP_REACH = 0.5 - ClientTerrain.HALF_WIDTH;
     private static final double EYE_HEIGHT = EntityTypes.PLAYER.getDimensions().eyeHeight();
 
     private boolean placed;
@@ -130,7 +132,23 @@ final class BotBody {
         }
     }
 
+    /** Under the surface the bot knows no floor: it stays where the server put it. */
     void travel(BotPilot pilot, ClientTerrain terrain) {
+        Vec3 guide = pilot.guide();
+        if (guide != null) {
+            follow(guide, pilot);
+            return;
+        }
+
+        OptionalInt roof = terrain.height(Mth.floor(x), Mth.floor(z));
+        if (roof.isPresent() && y < roof.getAsInt() - STEP_HEIGHT) {
+            verticalSpeed = 0;
+            horizontalCollision = false;
+            onGround = true;
+            input = Input.EMPTY;
+            return;
+        }
+
         double nextX = x + Math.cos(pilot.heading()) * pilot.speed();
         double nextZ = z + Math.sin(pilot.heading()) * pilot.speed();
         OptionalInt ground = terrain.ground(nextX, nextZ);
@@ -190,6 +208,38 @@ final class BotBody {
 
         lastOnGround = onGround;
         lastHorizontalCollision = horizontalCollision;
+    }
+
+    /** The bot rises a step as its body reaches the block, and only falls once its whole body is over the lower one. */
+    private void follow(Vec3 foot, BotPilot pilot) {
+        double dx = foot.x - x;
+        double dz = foot.z - z;
+        double distance = Math.sqrt(dx * dx + dz * dz);
+        double stride = Math.min(pilot.speed(), distance);
+        if (stride > 0) {
+            x += dx / distance * stride;
+            z += dz / distance * stride;
+        }
+
+        double left = distance - stride;
+        boolean falls = foot.y < y && left <= DROP_REACH;
+        if (foot.y > y && left <= STEP_REACH) {
+            y = foot.y;
+        }
+
+        if (falls) {
+            y = Math.max(foot.y, y + verticalSpeed);
+        }
+
+        onGround = !falls || y == foot.y;
+        verticalSpeed = onGround ? 0 : (verticalSpeed - GRAVITY) * VERTICAL_DRAG;
+        horizontalCollision = false;
+        stuck = false;
+        fallFlying = false;
+        input = stride > 0 ? FORWARD : Input.EMPTY;
+        if (stride > 0 && !pilot.looking()) {
+            yRot = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
+        }
     }
 
     private double walk(OptionalInt here, OptionalInt ahead, int minY) {

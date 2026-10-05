@@ -1,9 +1,9 @@
 package fr.hardel.overstress.fakeplayer;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class BotState {
@@ -13,12 +13,15 @@ public final class BotState {
     public volatile double heading;
     public int cooldown;
     public int deaths;
-    public double detour;
-    public volatile @Nullable Vec3 portal;
-    public volatile @Nullable Vec3 home;
-    public @Nullable Vec3 last;
-    public volatile boolean ready;
-    public volatile @Nullable ResourceKey<Level> dimension;
+    public volatile @Nullable DigOrder order;
+    public @Nullable DigOrder seen;
+    public @Nullable DigOrder done;
+    public int stall;
+    public long shaved = Long.MAX_VALUE;
+    public @Nullable BlockPos home;
+    public @Nullable ResourceKey<Level> dimension;
+    public boolean outside;
+    public int trip;
     public int quarry = -1;
     public int chase;
     public double closest;
@@ -43,5 +46,12 @@ public final class BotState {
 
     public float yRot() {
         return (float) Math.toDegrees(heading) - 90;
+    }
+
+    /** True the first time the server sees the bot in this dimension. */
+    public boolean arrives(ResourceKey<Level> entered) {
+        boolean arrives = dimension != entered;
+        dimension = entered;
+        return arrives;
     }
 }

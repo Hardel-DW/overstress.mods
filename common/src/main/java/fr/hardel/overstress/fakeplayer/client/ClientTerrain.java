@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.OptionalInt;
 
 public final class ClientTerrain {
-    private static final double HALF_WIDTH = EntityTypes.PLAYER.getWidth() / 2;
+    static final double HALF_WIDTH = EntityTypes.PLAYER.getWidth() / 2;
     private static final int COLUMNS = SectionPos.SECTION_SIZE * SectionPos.SECTION_SIZE;
     private final Long2ObjectMap<ChunkSurface> surfaces = new Long2ObjectOpenHashMap<>();
     private final LevelChunkSection section;

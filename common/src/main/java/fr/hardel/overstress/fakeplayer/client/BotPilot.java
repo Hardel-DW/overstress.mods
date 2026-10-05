@@ -1,6 +1,7 @@
 package fr.hardel.overstress.fakeplayer.client;
 
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public final class BotPilot {
     private final BotBody body;
@@ -12,6 +13,7 @@ public final class BotPilot {
     private long ticks;
     private boolean flying;
     private boolean looking;
+    private @Nullable Vec3 guide;
     private double heading;
     private double speed;
     private int altitude;
@@ -47,6 +49,12 @@ public final class BotPilot {
     public void look(Vec3 point) {
         body.look(point);
         looking = true;
+    }
+
+    /** This tick the bot walks to a foothold the server chose, without its own picture of the ground. */
+    public void stepTo(Vec3 foot, double speed) {
+        this.guide = foot;
+        this.speed = speed;
     }
 
     public double x() {
@@ -97,6 +105,7 @@ public final class BotPilot {
         ticks++;
         flying = false;
         looking = false;
+        guide = null;
         speed = 0;
     }
 
@@ -106,6 +115,10 @@ public final class BotPilot {
 
     boolean looking() {
         return looking;
+    }
+
+    @Nullable Vec3 guide() {
+        return guide;
     }
 
     double heading() {

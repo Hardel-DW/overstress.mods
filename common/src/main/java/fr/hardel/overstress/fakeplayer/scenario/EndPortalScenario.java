@@ -8,54 +8,46 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import org.jspecify.annotations.Nullable;
+
+import java.util.function.BiFunction;
 
 public final class EndPortalScenario implements BotScenario {
-    private static final int AWAY_TICKS = 100;
-    private static final double SPEED = 0.2;
+    public static final BotScenario EXIT = new EndPortalScenario(EndAssist::exitPortal);
+    public static final BotScenario GATEWAYS = new EndPortalScenario(EndAssist::gateway);
+    private static final int STAY_TICKS = 200;
+    private static final int RETRY_TICKS = 20;
+    private final BiFunction<ServerLevel, ServerPlayer, @Nullable BlockPos> wayOut;
+
+    private EndPortalScenario(BiFunction<ServerLevel, ServerPlayer, @Nullable BlockPos> wayOut) {
+        this.wayOut = wayOut;
+    }
 
     @Override
-    public void prepare(ServerLevel level, BotState state) {
-        EndAssist.buildPortal(level, state);
+    public void steer(BotPilot pilot, BotState state, RandomSource random) {
     }
 
     @Override
     public void assist(ServerPlayer player, BotState state) {
         ServerLevel level = player.level();
-        if (level.dimension() != Level.END) {
-            EndAssist.bringHome(player, state);
+        if (state.arrives(level.dimension())) {
+            state.trip = STAY_TICKS;
             return;
         }
 
-        EndAssist.killDragons(level);
-        BlockPos exit = state.ready ? EndAssist.exitPortal(level) : null;
-        if (exit != null) {
-            state.ready = false;
-            EndAssist.enter(player, exit);
-        }
-    }
-
-    @Override
-    public void steer(BotPilot pilot, BotState state, RandomSource random) {
-        if (state.dimension != pilot.status().dimension()) {
-            boolean arrived = state.dimension != null;
-            state.dimension = pilot.status().dimension();
-            state.cooldown = arrived ? AWAY_TICKS : 0;
-            state.ready = false;
+        boolean inTheEnd = level.dimension() == Level.END;
+        if (inTheEnd) {
+            EndAssist.killDragons(level);
         }
 
-        if (state.cooldown > 0) {
-            state.cooldown--;
-            pilot.walk(state.heading, SPEED);
+        if (--state.trip > 0) {
             return;
         }
 
-        if (state.dimension == Level.END) {
-            state.ready = true;
-            return;
-        }
-
-        if (state.home != null) {
-            pilot.walkTo(state.home, SPEED);
+        BlockPos portal = inTheEnd ? wayOut.apply(level, player) : EndAssist.home(level, player, state);
+        state.trip = portal == null ? RETRY_TICKS : STAY_TICKS;
+        if (portal != null) {
+            Portals.enter(player, portal);
         }
     }
 }

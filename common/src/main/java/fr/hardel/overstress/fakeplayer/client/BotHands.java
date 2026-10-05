@@ -107,22 +107,24 @@ public final class BotHands {
         inventory.select(hotbarIndex);
     }
 
-    public void mine(BlockPos pos, Direction face) {
+    /** True once the block is broken for the client, which predicts the break as a real one does. */
+    public boolean mine(BlockPos pos, Direction face, BlockState state) {
         attackHeld = true;
-        BlockState state = terrain.block(pos);
-        if (using() || state == null) {
-            return;
+        if (using()) {
+            return false;
         }
 
         if (!attackWasHeld) {
-            destroy(pos, face, state);
+            boolean instant = destroy(pos, face, state);
             send.accept(ServerboundPunchPacket.INSTANCE);
+            if (instant) {
+                return true;
+            }
         }
 
-        if (terrain.block(pos) != null) {
-            continueDestroying(pos, face, state);
-            send.accept(ServerboundPunchPacket.INSTANCE);
-        }
+        boolean broken = continueDestroying(pos, face, state);
+        send.accept(ServerboundPunchPacket.INSTANCE);
+        return broken;
     }
 
     public boolean attack(SeenEntity target) {
@@ -219,9 +221,9 @@ public final class BotHands {
         useTicks = 0;
     }
 
-    private void destroy(BlockPos pos, Direction face, BlockState state) {
+    private boolean destroy(BlockPos pos, Direction face, BlockState state) {
         if (destroying && sameTarget(pos)) {
-            return;
+            return false;
         }
 
         if (destroying) {
@@ -240,18 +242,18 @@ public final class BotHands {
         }
 
         send.accept(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pos, face, started));
+        return instant;
     }
 
-    private void continueDestroying(BlockPos pos, Direction face, BlockState state) {
+    private boolean continueDestroying(BlockPos pos, Direction face, BlockState state) {
         sendCarriedItem();
         if (destroyDelay > 0) {
             destroyDelay--;
-            return;
+            return false;
         }
 
         if (!sameTarget(pos)) {
-            destroy(pos, face, state);
-            return;
+            return destroy(pos, face, state);
         }
 
         destroyProgress += progress(state);
@@ -261,13 +263,15 @@ public final class BotHands {
             destroyDelay = DESTROY_DELAY_TICKS;
             terrain.update(pos, Blocks.AIR.defaultBlockState());
             send.accept(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, pos, face, ++sequence));
-            return;
+            return true;
         }
 
         if (destroyDirection != face) {
             destroyDirection = face;
             send.accept(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.CHANGE_DESTROY_DIRECTION, pos, face));
         }
+
+        return false;
     }
 
     private boolean sameTarget(BlockPos pos) {
