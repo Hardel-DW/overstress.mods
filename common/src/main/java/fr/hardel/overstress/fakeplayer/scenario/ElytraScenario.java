@@ -6,8 +6,8 @@ import fr.hardel.overstress.fakeplayer.client.BotPilot;
 import net.minecraft.util.RandomSource;
 
 public final class ElytraScenario implements BotScenario {
-    private static final double SPEED = 1.8;
-    private static final int ALTITUDE = 350;
+    static final double SPEED = 1.8;
+    static final int ALTITUDE = 350;
 
     @Override
     public void steer(BotPilot pilot, BotState state, RandomSource random) {
