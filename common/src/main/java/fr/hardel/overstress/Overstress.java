@@ -25,6 +25,7 @@ public final class Overstress {
     }
 
     public static void onServerStopping(MinecraftServer server) {
+        SimulationRunner.stop();
         FakePlayerManager.close();
     }
 

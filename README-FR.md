@@ -12,21 +12,21 @@ Certaines choses à noter :
 - **Les profils sont en mode offline.** Les UUID dérivent du nom du bot. Les bots ne passent pas par l'authentification et ne prennent aucune place de joueur.
 
 ## Commandes
-`/fakeplayer` demande le niveau de permission 2, donc gamemaster. La commande `scenario` permet d'invoquer des bots avec une action spécifique, `simulation` est basiquement un alias des scénarios avec juste des paramètres préconfigurés.
+`/overstress` demande le niveau de permission 2, donc gamemaster. `/overstress player` gère les bots à la main, `/overstress simulation` lance une expérience préconfigurée et reproductible.
 
-- `/fakeplayer spawn <count> <spread> <cluster> [scenario] [everyTicks]` fait apparaître `N` joueurs dans un rayon délimité avec le scénario mentionné. Le paramètre `<cluster>` va de 0% à 100%, quand le joueur apparaît il a une probabilité d'apparaître dans une zone existante, ce qui crée des groupes de joueurs. `<everyTicks>`, optionnel, permet de décaler périodiquement les apparitions.
-- `/fakeplayer scenario set <bot> <scenario>` change le scénario d'un bot.
-- `/fakeplayer scenario random <percent> <scenario>` change le scénario de plusieurs bots aléatoirement.
-- `/fakeplayer scenario list` affiche tous les scénarios.
-- `/fakeplayer clear` supprime tous les bots.
-- `/fakeplayer clear within <radius>` supprime tous les bots autour de la commande dans le rayon mentionné.
-- `/fakeplayer clear <count> <first|last|random>` supprime un certain nombre de bots, les premiers, les derniers, ou aléatoirement.
-- `/fakeplayer transport [direct|network]` affiche ou choisit le lien des prochains bots. Les bots prennent `network` dès que le serveur écoute sur un port, `direct` sinon.
-- `/fakeplayer pos` affiche les positions de tous les bots.
-- `/fakeplayer list` affiche combien de bots existent.
-- `/fakeplayer simulation start <simulation>` démarre la simulation.
-- `/fakeplayer simulation stop` arrête la simulation.
-- `/fakeplayer simulation status` affiche l'état de la simulation.
+- `/overstress player spawn <count> <spread> [cluster] [scenario] [everyTicks]` fait apparaître `N` joueurs dans un rayon délimité avec le scénario mentionné, ou un scénario tiré au hasard pour chaque bot quand il est omis. Le paramètre `[cluster]` va de 0% à 100%, quand le joueur apparaît il a une probabilité d'apparaître dans une zone existante, ce qui crée des groupes de joueurs. `[everyTicks]` permet de décaler périodiquement les apparitions.
+- `/overstress player scenario set <bot> <scenario>` change le scénario d'un bot.
+- `/overstress player scenario random <percent> <scenario>` donne le scénario à ce pourcentage des bots, tirés au hasard. Les autres bots passent en `idle`.
+- `/overstress player scenario list` affiche les bots, regroupés par scénario.
+- `/overstress player clear` supprime tous les bots.
+- `/overstress player clear within <radius>` supprime tous les bots autour de la commande dans le rayon mentionné.
+- `/overstress player clear <count> [first|last|random]` supprime un certain nombre de bots, les premiers, les derniers, ou aléatoirement. Sans précision, les derniers arrivés.
+- `/overstress player transport [direct|network]` affiche ou choisit le lien des prochains bots. Les bots prennent `network` dès que le serveur écoute sur un port, `direct` sinon.
+- `/overstress player pos` affiche les positions de tous les bots.
+- `/overstress player list` affiche combien de bots existent.
+- `/overstress simulation start <simulation>` démarre la simulation.
+- `/overstress simulation stop` arrête la simulation.
+- `/overstress simulation status` affiche l'état de la simulation.
 
 ## Scénarios
 | Scénario | Charge produite |
@@ -45,7 +45,11 @@ Certaines choses à noter :
 | `overstress:random` | Exécute un autre scénario pendant une minute, puis en tire un nouveau. |
 
 ## Simulations
-Une simulation est un spawn préconfiguré avec une durée. Ses champs sont bots, rayon, cluster en %, rayon de cluster, scénario, durée, intervalle de spawn, et mob spawning. Le rayon de cluster vaut 32 (touching) ou 256 (neighbouring).
+Une simulation est une expérience reproductible. Au départ elle retire tous les bots présents, puis place les siens sur un cercle autour de l'origine du monde, avec des graines fixes : deux runs donnent les mêmes positions. À la fin de sa durée elle retire ses bots. Une seule simulation tourne à la fois.
+
+Tant qu'elle tourne, elle gèle le temps, la météo et les random ticks, et règle l'apparition des mobs selon sa colonne Mob spawning. Les gamerules reprennent leur valeur à l'arrêt de la simulation ou du serveur.
+
+Ses champs sont bots, rayon, cluster en %, rayon de cluster, scénario, durée, intervalle de spawn, et mob spawning. Le rayon de cluster vaut 32 (touching) ou 256 (neighbouring).
 
 | Simulation | Bots | Rayon | Cluster | Scénario | Durée | Spawn étalé | Mob spawning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -63,12 +67,12 @@ Une simulation est un spawn préconfiguré avec une durée. Ses champs sont bots
 | `overstress:pvp` | 16 | 0 | 100% / 32 | pvp | 3 min | non | on |
 
 ## Ajouter un scénario ou une simulation
-Les scénarios et les simulations vivent dans un registre, vous pouvez donc en ajouter. Les scénarios implémentent la classe `BotScenario` tandis que les simulations implémentent `Simulation`. Un scénario dirige le client du bot à chaque tick client : il lit ce que le client sait et pilote son mouvement et ses mains, jamais le serveur. `standing()` fixe le mode de jeu, l'invulnérabilité et les droits de commande avec lesquels le bot se connecte.
+Les scénarios et les simulations vivent dans un registre, vous pouvez donc en ajouter. Un scénario implémente l'interface `BotScenario`, une simulation est un record `Simulation` dont les champs suivent l'ordre donné plus haut, avec les durées en ticks. Un scénario dirige le client du bot à chaque tick client : il lit ce que le client sait et pilote son mouvement et ses mains, jamais le serveur. `standing()` fixe le mode de jeu et l'invulnérabilité avec lesquels le bot se connecte.
 
 ```java
 Registry.register(BotScenarios.REGISTRY, Identifier.fromNamespaceAndPath("mymod", "afk_farm"), new AfkFarmScenario());
 ```
 
 ```java
-Registry.register(Simulations.REGISTRY, Identifier.fromNamespaceAndPath("mymod", "afk_farm"), new DragonFightSimulation());
+Registry.register(Simulations.REGISTRY, Identifier.fromNamespaceAndPath("mymod", "afk_farm"), new Simulation(20, 500, 0, 32, afkFarm, 3 * SharedConstants.TICKS_PER_MINUTE, 0, false));
 ```

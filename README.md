@@ -12,21 +12,21 @@ A few things to note:
 - **Profiles are offline-mode.** UUIDs are derived from the bot name. Bots skip authentication and take no player slot.
 
 ## Commands
-`/fakeplayer` needs permission level 2, so gamemaster. The `scenario` command spawns bots with a specific action, `simulation` is basically an alias of scenarios with just preconfigured parameters.
+`/overstress` needs permission level 2, so gamemaster. `/overstress player` manages the bots by hand, `/overstress simulation` runs a preconfigured, reproducible experiment.
 
-- `/fakeplayer spawn <count> <spread> <cluster> [scenario] [everyTicks]` spawns `N` players within a bounded radius with the given scenario. The `<cluster>` parameter goes from 0% to 100%, when a player spawns it has a probability of spawning in an existing zone, which creates groups of players. `<everyTicks>`, optional, spreads the spawns out periodically.
-- `/fakeplayer scenario set <bot> <scenario>` changes the scenario of one bot.
-- `/fakeplayer scenario random <percent> <scenario>` changes the scenario of several bots at random.
-- `/fakeplayer scenario list` shows every scenario.
-- `/fakeplayer clear` removes every bot.
-- `/fakeplayer clear within <radius>` removes every bot around the command within the given radius.
-- `/fakeplayer clear <count> <first|last|random>` removes a given number of bots, the first ones, the last ones, or at random.
-- `/fakeplayer transport [direct|network]` shows or picks the link of the next bots. Bots use `network` whenever the server listens on a port, `direct` otherwise.
-- `/fakeplayer pos` shows the position of every bot.
-- `/fakeplayer list` shows how many bots exist.
-- `/fakeplayer simulation start <simulation>` starts the simulation.
-- `/fakeplayer simulation stop` stops the simulation.
-- `/fakeplayer simulation status` shows the state of the simulation.
+- `/overstress player spawn <count> <spread> [cluster] [scenario] [everyTicks]` spawns `N` players within a bounded radius with the given scenario, or a scenario drawn at random for each bot when it is left out. The `[cluster]` parameter goes from 0% to 100%, when a player spawns it has a probability of spawning in an existing zone, which creates groups of players. `[everyTicks]` spreads the spawns out periodically.
+- `/overstress player scenario set <bot> <scenario>` changes the scenario of one bot.
+- `/overstress player scenario random <percent> <scenario>` gives the scenario to this percentage of the bots, drawn at random. The other bots go `idle`.
+- `/overstress player scenario list` shows the bots, grouped by scenario.
+- `/overstress player clear` removes every bot.
+- `/overstress player clear within <radius>` removes every bot around the command within the given radius.
+- `/overstress player clear <count> [first|last|random]` removes a given number of bots, the first ones, the last ones, or at random. The last ones by default.
+- `/overstress player transport [direct|network]` shows or picks the link of the next bots. Bots use `network` whenever the server listens on a port, `direct` otherwise.
+- `/overstress player pos` shows the position of every bot.
+- `/overstress player list` shows how many bots exist.
+- `/overstress simulation start <simulation>` starts the simulation.
+- `/overstress simulation stop` stops the simulation.
+- `/overstress simulation status` shows the state of the simulation.
 
 ## Scenarios
 | Scenario | Load it produces |
@@ -45,7 +45,11 @@ A few things to note:
 | `overstress:random` | Runs another scenario for a minute, then draws a new one. |
 
 ## Simulations
-A simulation is a preconfigured spawn with a duration. Its fields are bots, radius, cluster in %, cluster radius, scenario, duration, spawn interval, and mob spawning. The cluster radius is 32 (touching) or 256 (neighbouring).
+A simulation is a reproducible experiment. When it starts it removes every bot, then places its own on a ring around the world origin, with fixed seeds: two runs give the same positions. At the end of its duration it removes its bots. Only one simulation runs at a time.
+
+While it runs, it freezes the time, the weather and the random ticks, and sets mob spawning from its Mob spawning column. The gamerules get their value back when the simulation or the server stops.
+
+Its fields are bots, radius, cluster in %, cluster radius, scenario, duration, spawn interval, and mob spawning. The cluster radius is 32 (touching) or 256 (neighbouring).
 
 | Simulation | Bots | Radius | Cluster | Scenario | Duration | Spread spawn | Mob spawning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -63,12 +67,12 @@ A simulation is a preconfigured spawn with a duration. Its fields are bots, radi
 | `overstress:pvp` | 16 | 0 | 100% / 32 | pvp | 3 min | no | on |
 
 ## Adding a scenario or a simulation
-Scenarios and simulations live in a registry, so you can add your own. Scenarios implement the `BotScenario` class while simulations implement `Simulation`. A scenario steers the bot's client every client tick: it reads what the client knows and drives its movement and its hands, never the server. `standing()` sets the game mode, the invulnerability and the command rights the bot joins with.
+Scenarios and simulations live in a registry, so you can add your own. A scenario implements the `BotScenario` interface, a simulation is a `Simulation` record whose fields follow the order given above, with durations in ticks. A scenario steers the bot's client every client tick: it reads what the client knows and drives its movement and its hands, never the server. `standing()` sets the game mode and the invulnerability the bot joins with.
 
 ```java
 Registry.register(BotScenarios.REGISTRY, Identifier.fromNamespaceAndPath("mymod", "afk_farm"), new AfkFarmScenario());
 ```
 
 ```java
-Registry.register(Simulations.REGISTRY, Identifier.fromNamespaceAndPath("mymod", "afk_farm"), new DragonFightSimulation());
+Registry.register(Simulations.REGISTRY, Identifier.fromNamespaceAndPath("mymod", "afk_farm"), new Simulation(20, 500, 0, 32, afkFarm, 3 * SharedConstants.TICKS_PER_MINUTE, 0, false));
 ```

@@ -43,7 +43,7 @@ public final class FakePlayerManager {
     }
 
     public static void open(MinecraftServer server) {
-        clients = new BotClients(server, bot -> forget(bot.profile().id()));
+        clients = new BotClients(server, FakePlayerManager::forget);
     }
 
     public static void close() {
@@ -179,9 +179,11 @@ public final class FakePlayerManager {
         return true;
     }
 
-    private static void forget(UUID id) {
-        bots.remove(id);
-        arrivals.remove(id);
+    /** A bot that left may share its name, so its id, with the bot that replaced it. */
+    private static void forget(BotClient bot) {
+        if (bots.remove(bot.profile().id(), bot)) {
+            arrivals.remove(bot.profile().id());
+        }
     }
 
     public static int count() {

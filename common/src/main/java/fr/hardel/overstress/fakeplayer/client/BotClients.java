@@ -118,12 +118,23 @@ public final class BotClients {
 
     private void tick() {
         for (BotClient client : clients) {
-            if (!client.tick()) {
+            if (!ticks(client)) {
                 clients.remove(client);
                 addresses.remove(client.address());
                 taps.remove(client.address());
                 disconnected.accept(client);
             }
+        }
+    }
+
+    /** An exception that escaped would cancel the scheduled tick of every bot, silently. */
+    private static boolean ticks(BotClient client) {
+        try {
+            return client.tick();
+        } catch (RuntimeException exception) {
+            Overstress.LOGGER.error("{} crashed and leaves", client.profile().name(), exception);
+            client.leave();
+            return false;
         }
     }
 
