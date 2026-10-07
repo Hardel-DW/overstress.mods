@@ -89,9 +89,11 @@ public final class SimulationRunner {
         
         while (this.spawned < due) {
             int index = this.spawned++;
-            double angle = 2 * Math.PI * index / this.simulation.bots();
+            int spots = Math.ceilDiv(this.simulation.bots(), this.simulation.perSpot());
+            double angle = 2 * Math.PI * (index / this.simulation.perSpot()) / spots;
             Vec3 ring = new Vec3(Math.cos(angle) * this.simulation.radius(), 0, Math.sin(angle) * this.simulation.radius());
-            FakePlayerManager.spawn(this.server, "Sim_" + index, this.cluster.next(ring), this.simulation.scenario(), seedOf(index));
+            Vec3 spot = this.simulation.perSpot() > 1 ? this.cluster.around(ring) : ring;
+            FakePlayerManager.spawn(this.server, "Sim_" + index, this.cluster.next(spot), this.simulation.scenario(), seedOf(index));
         }
     }
 

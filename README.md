@@ -49,7 +49,7 @@ A simulation is a reproducible experiment. When it starts it removes every bot, 
 
 While it runs, it freezes the time, the weather and the random ticks, and sets mob spawning from its Mob spawning column. The gamerules get their value back when the simulation or the server stops.
 
-Its fields are bots, radius, cluster in %, cluster radius, scenario, duration, spawn interval, and mob spawning. The cluster radius is 32 (touching) or 256 (neighbouring).
+Its fields are bots, radius, cluster in %, cluster radius, scenario, duration, spawn interval, mob spawning, and bots per spot of the ring (one unless given, a group stands within the cluster radius of its spot). The cluster radius is 32 (touching) or 256 (neighbouring).
 
 | Simulation | Bots | Radius | Cluster | Scenario | Duration | Spread spawn | Mob spawning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -59,7 +59,8 @@ Its fields are bots, radius, cluster in %, cluster radius, scenario, duration, s
 | `overstress:border` | 20 | 2100 | 0% / 32 | wander | 3 min | no | off |
 | `overstress:mobs` | 20 | 800 | 5% / 32 | spawner | 3 min | no | on |
 | `overstress:churn` | 60 | 5000 | 5% / 256 | churn | 10 min | no | off |
-| `overstress:ramp` | 300 | 20000 | 0% / 256 | mine | 15 min | 1 bot / 60 ticks | off |
+| `overstress:ramp` | 1000 | 70000 | 0% / 256 | idle | 25 min | 1 bot / 20 ticks | off |
+| `overstress:hubs` | 1000, 20 per spot | 70000 | 0% / 32 | idle | 25 min | 1 bot / 20 ticks | off |
 | `overstress:sprawl` | 100 | 50000 | 5% / 256 | elytra | 10 min | 1 bot / 60 ticks | off |
 | `overstress:solo` | 1 | 0 | 0% / 32 | elytra | 5 min | no | off |
 | `overstress:worldgen` | 5 | 2000 | 0% / 32 | elytra | 3 min | no | off |

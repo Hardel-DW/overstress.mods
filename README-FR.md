@@ -49,7 +49,7 @@ Une simulation est une expérience reproductible. Au départ elle retire tous le
 
 Tant qu'elle tourne, elle gèle le temps, la météo et les random ticks, et règle l'apparition des mobs selon sa colonne Mob spawning. Les gamerules reprennent leur valeur à l'arrêt de la simulation ou du serveur.
 
-Ses champs sont bots, rayon, cluster en %, rayon de cluster, scénario, durée, intervalle de spawn, et mob spawning. Le rayon de cluster vaut 32 (touching) ou 256 (neighbouring).
+Ses champs sont bots, rayon, cluster en %, rayon de cluster, scénario, durée, intervalle de spawn, mob spawning, et bots par point de l'anneau (un sauf indication, un groupe se tient dans le rayon de cluster de son point). Le rayon de cluster vaut 32 (touching) ou 256 (neighbouring).
 
 | Simulation | Bots | Rayon | Cluster | Scénario | Durée | Spawn étalé | Mob spawning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -59,7 +59,8 @@ Ses champs sont bots, rayon, cluster en %, rayon de cluster, scénario, durée, 
 | `overstress:border` | 20 | 2100 | 0% / 32 | wander | 3 min | non | off |
 | `overstress:mobs` | 20 | 800 | 5% / 32 | spawner | 3 min | non | on |
 | `overstress:churn` | 60 | 5000 | 5% / 256 | churn | 10 min | non | off |
-| `overstress:ramp` | 300 | 20000 | 0% / 256 | mine | 15 min | 1 bot / 60 ticks | off |
+| `overstress:ramp` | 1000 | 70000 | 0% / 256 | idle | 25 min | 1 bot / 20 ticks | off |
+| `overstress:hubs` | 1000, 20 par point | 70000 | 0% / 32 | idle | 25 min | 1 bot / 20 ticks | off |
 | `overstress:sprawl` | 100 | 50000 | 5% / 256 | elytra | 10 min | 1 bot / 60 ticks | off |
 | `overstress:solo` | 1 | 0 | 0% / 32 | elytra | 5 min | non | off |
 | `overstress:worldgen` | 5 | 2000 | 0% / 32 | elytra | 3 min | non | off |
