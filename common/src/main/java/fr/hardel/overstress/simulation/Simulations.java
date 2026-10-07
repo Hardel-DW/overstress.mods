@@ -25,9 +25,7 @@ public final class Simulations {
         register("border", new Simulation(20, 2100, 0, TOUCHING, BotScenarios.WANDER, 3 * SharedConstants.TICKS_PER_MINUTE, 0, false));
         register("mobs", new Simulation(20, 800, 5, TOUCHING, BotScenarios.SPAWNER, 3 * SharedConstants.TICKS_PER_MINUTE, 0, true));
         register("churn", new Simulation(60, 5000, 5, NEIGHBOURING, BotScenarios.CHURN, 10 * SharedConstants.TICKS_PER_MINUTE, 0, false));
-        // One idle bot every second on a ring wide enough for a region each: how many regions the machine holds at 20 TPS.
         register("ramp", new Simulation(1000, 70000, 0, NEIGHBOURING, BotScenarios.IDLE, 25 * SharedConstants.TICKS_PER_MINUTE, 20, false));
-        // The same thousand idle bots in fifty groups of twenty: fifty regions, each shared by twenty players.
         register("hubs", new Simulation(1000, 70000, 0, TOUCHING, BotScenarios.IDLE, 25 * SharedConstants.TICKS_PER_MINUTE, 20, false, 20));
         register("sprawl", new Simulation(100, 50000, 5, NEIGHBOURING, BotScenarios.ELYTRA, 10 * SharedConstants.TICKS_PER_MINUTE, 60, false));
         register("solo", new Simulation(1, 0, 0, TOUCHING, BotScenarios.ELYTRA, 5 * SharedConstants.TICKS_PER_MINUTE, 0, false));

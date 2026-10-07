@@ -24,7 +24,6 @@ public final class ClusterSpread {
         return position;
     }
 
-    /** A spot of the ring, somewhere within the cluster radius: the bots of one spot stand together without standing on each other. */
     public Vec3 around(Vec3 spot) {
         return spot.add(offset(), 0, offset());
     }
