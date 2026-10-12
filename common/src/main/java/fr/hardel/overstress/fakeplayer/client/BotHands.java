@@ -55,6 +55,7 @@ public final class BotHands {
     private final BotBody body;
     private final ClientTerrain terrain;
     private final ClientInventory inventory;
+    private final ClientStatus status;
     private final HashedPatchMap.HashGenerator hasher;
     private int sequence;
     private int carriedIndex;
@@ -72,11 +73,12 @@ public final class BotHands {
     private int rightClickDelay;
     private int useTicks;
 
-    BotHands(Consumer<Packet<?>> send, BotBody body, ClientTerrain terrain, ClientInventory inventory, RegistryAccess registries) {
+    BotHands(Consumer<Packet<?>> send, BotBody body, ClientTerrain terrain, ClientInventory inventory, ClientStatus status, RegistryAccess registries) {
         this.send = send;
         this.body = body;
         this.terrain = terrain;
         this.inventory = inventory;
+        this.status = status;
         RegistryOps<HashCode> hashOps = registries.createSerializationContext(HashOps.CRC32C_INSTANCE);
         this.hasher = component -> component.encodeValue(hashOps).getOrThrow(IllegalArgumentException::new).asInt();
     }
@@ -217,7 +219,13 @@ public final class BotHands {
         useTicks = 0;
     }
 
+    /** In creative the server breaks the block on the start and never tracks a destroy: there is nothing to abort. */
     private boolean destroy(BlockPos pos, Direction face, BlockState state) {
+        if (status.instabuild()) {
+            destroyDelay = DESTROY_DELAY_TICKS;
+            return predictBreak(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pos, face);
+        }
+
         if (destroying && sameTarget(pos)) {
             return false;
         }
@@ -226,19 +234,17 @@ public final class BotHands {
             send.accept(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, destroyPos, face));
         }
 
-        int started = ++sequence;
-        boolean instant = progress(state) >= 1;
-        destroying = !instant;
+        destroying = progress(state) < 1;
+        if (!destroying) {
+            return predictBreak(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pos, face);
+        }
+
         destroyPos = pos.immutable();
         destroyDirection = face;
         destroyingItem = inventory.selectedItem();
         destroyProgress = 0;
-        if (instant) {
-            terrain.update(pos, Blocks.AIR.defaultBlockState());
-        }
-
-        send.accept(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pos, face, started));
-        return instant;
+        send.accept(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, pos, face, ++sequence));
+        return false;
     }
 
     private boolean continueDestroying(BlockPos pos, Direction face, BlockState state) {
@@ -248,7 +254,7 @@ public final class BotHands {
             return false;
         }
 
-        if (!sameTarget(pos)) {
+        if (status.instabuild() || !sameTarget(pos)) {
             return destroy(pos, face, state);
         }
 
@@ -257,9 +263,7 @@ public final class BotHands {
             destroying = false;
             destroyProgress = 0;
             destroyDelay = DESTROY_DELAY_TICKS;
-            terrain.update(pos, Blocks.AIR.defaultBlockState());
-            send.accept(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, pos, face, ++sequence));
-            return true;
+            return predictBreak(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, pos, face);
         }
 
         if (destroyDirection != face) {
@@ -268,6 +272,13 @@ public final class BotHands {
         }
 
         return false;
+    }
+
+    /** The client breaks the block before the server answers, as a real one predicts it. */
+    private boolean predictBreak(ServerboundPlayerActionPacket.Action action, BlockPos pos, Direction face) {
+        terrain.update(pos, Blocks.AIR.defaultBlockState());
+        send.accept(new ServerboundPlayerActionPacket(action, pos, face, ++sequence));
+        return true;
     }
 
     private boolean sameTarget(BlockPos pos) {
