@@ -251,7 +251,7 @@ public final class BotClient {
     }
 
     private void teleport(ClientboundPlayerPositionPacket position) {
-        link.send(body.teleport(position));
+        body.teleport(position, link);
         terrain.land(body.position());
         hands.stopDestroying();
     }
@@ -294,11 +294,6 @@ public final class BotClient {
 
         @Override
         public boolean hasInfiniteMaterials() {
-            return false;
-        }
-
-        @Override
-        public boolean canUseCommandBlocks() {
             return false;
         }
     }

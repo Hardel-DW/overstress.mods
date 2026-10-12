@@ -64,17 +64,17 @@ public final class ClientTerrain {
     }
 
     void receive(ClientboundLevelChunkWithLightPacket chunk) {
-        SimpleBitStorage heights = new SimpleBitStorage(bits, COLUMNS, chunk.chunkData().getHeightmaps().get(Heightmap.Types.MOTION_BLOCKING));
+        SimpleBitStorage heights = new SimpleBitStorage(bits, COLUMNS, chunk.getChunkData().getHeightmaps().get(Heightmap.Types.MOTION_BLOCKING));
         char[] tops = new char[COLUMNS];
         char[] belows = new char[COLUMNS];
         int highest = highestTop(heights);
-        FriendlyByteBuf buffer = chunk.chunkData().getReadBuffer();
+        FriendlyByteBuf buffer = chunk.getChunkData().getReadBuffer();
         for (int bottom = minY; bottom <= highest; bottom += SectionPos.SECTION_SIZE) {
             section.read(buffer);
             readTops(heights, tops, belows, bottom);
         }
 
-        surfaces.put(ChunkPos.pack(chunk.x(), chunk.z()), new ChunkSurface(heights, tops, belows));
+        surfaces.put(ChunkPos.pack(chunk.getX(), chunk.getZ()), new ChunkSurface(heights, tops, belows));
     }
 
     void forget(ChunkPos pos) {

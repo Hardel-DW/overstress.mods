@@ -16,8 +16,8 @@ import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundChatPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
-import net.minecraft.network.protocol.game.ServerboundPunchPacket;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
+import net.minecraft.network.protocol.game.ServerboundSwingPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
 import net.minecraft.resources.RegistryOps;
@@ -39,7 +39,6 @@ import net.minecraft.world.phys.Vec3;
 
 import java.time.Instant;
 import java.util.BitSet;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class BotHands {
@@ -50,6 +49,7 @@ public final class BotHands {
     private static final float WRONG_TOOL_DIVISOR = 100;
     private static final float TICKS_PER_SECOND = 20;
     private static final float CHARGE_PARTIAL_TICK = 0.5F;
+    private static final ServerboundSwingPacket SWING = new ServerboundSwingPacket(InteractionHand.MAIN_HAND);
     private static final LastSeenMessages.Update NOTHING_SEEN = new LastSeenMessages.Update(0, new BitSet(), LastSeenMessages.EMPTY.computeChecksum());
     private final Consumer<Packet<?>> send;
     private final BotBody body;
@@ -62,7 +62,6 @@ public final class BotHands {
     private ItemStack lastMainHand = ItemStack.EMPTY;
     private boolean destroying;
     private BlockPos destroyPos = BlockPos.ZERO;
-    private Direction destroyDirection = Direction.DOWN;
     private ItemStack destroyingItem = ItemStack.EMPTY;
     private float destroyProgress;
     private int destroyDelay;
@@ -116,14 +115,14 @@ public final class BotHands {
 
         if (!attackWasHeld) {
             boolean instant = destroy(pos, face, state);
-            send.accept(ServerboundPunchPacket.INSTANCE);
+            send.accept(SWING);
             if (instant) {
                 return true;
             }
         }
 
         boolean broken = continueDestroying(pos, face, state);
-        send.accept(ServerboundPunchPacket.INSTANCE);
+        send.accept(SWING);
         return broken;
     }
 
@@ -135,7 +134,7 @@ public final class BotHands {
         sendCarriedItem();
         send.accept(new ServerboundAttackPacket(target.id()));
         attackStrengthTicker = 0;
-        send.accept(ServerboundPunchPacket.INSTANCE);
+        send.accept(SWING);
         return true;
     }
 
@@ -176,7 +175,7 @@ public final class BotHands {
     }
 
     public void say(String message) {
-        send.accept(new ServerboundChatPacket(message, Instant.now(), Crypt.SaltSupplier.getLong(), Optional.empty(), NOTHING_SEEN));
+        send.accept(new ServerboundChatPacket(message, Instant.now(), Crypt.SaltSupplier.getLong(), null, NOTHING_SEEN));
     }
 
     public void command(String command) {
@@ -234,7 +233,6 @@ public final class BotHands {
         boolean instant = progress(state) >= 1;
         destroying = !instant;
         destroyPos = pos.immutable();
-        destroyDirection = face;
         destroyingItem = inventory.selectedItem();
         destroyProgress = 0;
         if (instant) {
@@ -264,11 +262,6 @@ public final class BotHands {
             terrain.update(pos, Blocks.AIR.defaultBlockState());
             send.accept(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.STOP_DESTROY_BLOCK, pos, face, ++sequence));
             return true;
-        }
-
-        if (destroyDirection != face) {
-            destroyDirection = face;
-            send.accept(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.CHANGE_DESTROY_DIRECTION, pos, face));
         }
 
         return false;

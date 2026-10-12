@@ -21,7 +21,7 @@ final class ClientInbox {
     void deliver(Packet<?> packet) {
         switch (packet) {
             case ClientboundLevelChunkWithLightPacket chunk -> {
-                heldChunks.add(ChunkPos.pack(chunk.x(), chunk.z()));
+                heldChunks.add(ChunkPos.pack(chunk.getX(), chunk.getZ()));
                 receivedChunks.incrementAndGet();
             }
             case ClientboundForgetLevelChunkPacket forget -> heldChunks.remove(forget.pos().pack());

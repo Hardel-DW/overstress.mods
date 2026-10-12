@@ -111,7 +111,7 @@ final class BotBody {
         verticalSpeed = 0;
     }
 
-    ServerboundAcceptTeleportationPacket teleport(ClientboundPlayerPositionPacket packet) {
+    void teleport(ClientboundPlayerPositionPacket packet, BotLink link) {
         PositionMoveRotation current = new PositionMoveRotation(new Vec3(x, y, z), new Vec3(0, verticalSpeed, 0), yRot, xRot);
         PositionMoveRotation next = PositionMoveRotation.calculateAbsolute(current, packet.change(), packet.relatives());
         x = next.position().x;
@@ -121,7 +121,8 @@ final class BotBody {
         yRot = next.yRot();
         xRot = next.xRot();
         placed = true;
-        return new ServerboundAcceptTeleportationPacket(packet.id(), x, y, z, yRot, xRot);
+        link.send(new ServerboundAcceptTeleportationPacket(packet.id()));
+        link.send(new ServerboundMovePlayerPacket.PosRot(new Vec3(x, y, z), yRot, xRot, false, false));
     }
 
     void synchronize(ClientboundSetEntityDataPacket packet) {

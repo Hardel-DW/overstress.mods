@@ -86,7 +86,7 @@ public final class ClientEntities {
     void move(ClientboundMoveEntityPacket packet) {
         SeenEntity entity = seen.get(packet.entityId);
         if (entity != null && packet.hasPosition()) {
-            Vec3 position = packet.getPositionDelta().decode(entity.codec()).endPosition();
+            Vec3 position = entity.codec().decode(packet.getXa(), packet.getYa(), packet.getZa());
             entity.codec().setBase(position);
             entity.moveTo(position);
         }
@@ -95,7 +95,7 @@ public final class ClientEntities {
     void sync(ClientboundEntityPositionSyncPacket packet) {
         SeenEntity entity = seen.get(packet.id());
         if (entity != null) {
-            Vec3 position = packet.position().endPosition();
+            Vec3 position = packet.values().position();
             entity.codec().setBase(position);
             entity.moveTo(position);
         }
@@ -110,7 +110,7 @@ public final class ClientEntities {
     }
 
     void remove(ClientboundRemoveEntitiesPacket packet) {
-        IntList ids = packet.entityIds();
+        IntList ids = packet.getEntityIds();
         for (int index = 0; index < ids.size(); index++) {
             seen.remove(ids.getInt(index));
         }
