@@ -22,7 +22,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.OptionalInt;
 
 final class BotBody {
-    private static final double MAX_CLIMB_PER_TICK = 4;
+    // About the climb of a player boosted by a firework.
+    private static final double MAX_CLIMB_PER_TICK = 1.5;
     static final double STEP_HEIGHT = 1;
     private static final double GRAVITY = Attributes.GRAVITY.value().getDefaultValue();
     private static final double JUMP = Attributes.JUMP_STRENGTH.value().getDefaultValue();
