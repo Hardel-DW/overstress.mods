@@ -41,6 +41,7 @@ import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundLoginPacket;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerAbilitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
@@ -105,7 +106,7 @@ public final class BotClient {
         this.information = information;
         this.registries = registries;
         this.terrain = new ClientTerrain(registries);
-        this.hands = new BotHands(this::send, body, terrain, inventory, registries);
+        this.hands = new BotHands(this::send, body, terrain, inventory, status, registries);
         this.pilot = new BotPilot(body, hands, terrain, entities, inventory, status);
     }
 
@@ -216,6 +217,7 @@ public final class BotClient {
             case ClientboundSetCursorItemPacket cursor -> inventory.cursor(cursor);
             case ClientboundSetHeldSlotPacket held -> inventory.held(held);
             case ClientboundSetHealthPacket health -> health(health);
+            case ClientboundPlayerAbilitiesPacket abilities -> status.abilities(abilities);
             case ClientboundSetEntityDataPacket data when data.id() == entityId -> body.synchronize(data);
             default -> { }
         }
