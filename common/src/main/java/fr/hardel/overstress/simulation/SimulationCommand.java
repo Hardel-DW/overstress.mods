@@ -42,7 +42,6 @@ public final class SimulationCommand {
         }
 
         source.sendSuccess(() -> Component.literal("Simulation " + id + " started, " + simulation.bots() + " bots for " + simulation.durationTicks() + " ticks"), true);
-
         return Command.SINGLE_SUCCESS;
     }
 
@@ -52,7 +51,6 @@ public final class SimulationCommand {
         }
 
         source.sendSuccess(() -> Component.literal("Simulation stopped"), true);
-
         return Command.SINGLE_SUCCESS;
     }
 

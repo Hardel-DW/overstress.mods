@@ -24,6 +24,10 @@ public final class ClusterSpread {
         return position;
     }
 
+    public Vec3 around(Vec3 spot) {
+        return spot.add(offset(), 0, offset());
+    }
+
     private Vec3 besidePlaced() {
         return this.placed.get(this.random.nextInt(this.placed.size())).add(offset(), 0, offset());
     }
