@@ -81,21 +81,17 @@ public final class BotHands {
         this.hasher = component -> component.encodeValue(hashOps).getOrThrow(IllegalArgumentException::new).asInt();
     }
 
-    public boolean destroying() {
-        return destroying;
-    }
-
     public boolean using() {
         return useTicks > 0;
     }
 
-    public boolean charged() {
+    private boolean charged() {
         double attackSpeed = inventory.selectedItem().getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY)
             .compute(Attributes.ATTACK_SPEED, Attributes.ATTACK_SPEED.value().getDefaultValue(), EquipmentSlot.MAINHAND);
         return (attackStrengthTicker + CHARGE_PARTIAL_TICK) * attackSpeed >= TICKS_PER_SECOND;
     }
 
-    public float progress(BlockState state) {
+    private float progress(BlockState state) {
         float hardness = state.getDestroySpeed(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
         ItemStack tool = inventory.selectedItem();
         float speed = tool.getDestroySpeed(state) / (body.onGround() ? 1 : AIRBORNE_MINING_DIVISOR);
