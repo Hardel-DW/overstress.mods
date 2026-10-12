@@ -13,7 +13,7 @@ import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.world.entity.EntityEvent;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.level.GameType;
@@ -31,7 +31,7 @@ public final class ClientEntities {
     private final Map<UUID, GameType> gameModes = new HashMap<>();
 
     public boolean hurtable(SeenEntity entity) {
-        if (entity.type() == EntityTypes.PLAYER) {
+        if (entity.type() == EntityType.PLAYER) {
             return gameModes.get(entity.uuid()) == GameType.SURVIVAL;
         }
 

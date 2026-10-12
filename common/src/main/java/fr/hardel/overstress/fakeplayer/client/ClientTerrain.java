@@ -11,7 +11,7 @@ import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
 import net.minecraft.util.Mth;
 import net.minecraft.util.SimpleBitStorage;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.OptionalInt;
 
 public final class ClientTerrain {
-    static final double HALF_WIDTH = EntityTypes.PLAYER.getWidth() / 2;
+    static final double HALF_WIDTH = EntityType.PLAYER.getWidth() / 2;
     private static final int COLUMNS = SectionPos.SECTION_SIZE * SectionPos.SECTION_SIZE;
     private final Long2ObjectMap<ChunkSurface> surfaces = new Long2ObjectOpenHashMap<>();
     private final LevelChunkSection section;

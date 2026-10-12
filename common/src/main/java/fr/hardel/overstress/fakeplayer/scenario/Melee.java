@@ -6,7 +6,6 @@ import fr.hardel.overstress.fakeplayer.client.SeenEntity;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
 import java.util.Set;
@@ -15,8 +14,8 @@ final class Melee {
     private static final double REACH = Attributes.ENTITY_INTERACTION_RANGE.value().getDefaultValue();
     private static final int PATIENCE_TICKS = 60;
     private static final double PROGRESS = 2;
-    private static final Set<EntityType<?>> AIRBORNE = Set.of(EntityTypes.ALLAY, EntityTypes.BAT, EntityTypes.BEE, EntityTypes.BLAZE, EntityTypes.BREEZE, EntityTypes.ENDER_DRAGON,
-        EntityTypes.GHAST, EntityTypes.HAPPY_GHAST, EntityTypes.PARROT, EntityTypes.PHANTOM, EntityTypes.VEX, EntityTypes.WITHER);
+    private static final Set<EntityType<?>> AIRBORNE = Set.of(EntityType.ALLAY, EntityType.BAT, EntityType.BEE, EntityType.BLAZE, EntityType.BREEZE, EntityType.ENDER_DRAGON,
+        EntityType.GHAST, EntityType.HAPPY_GHAST, EntityType.PARROT, EntityType.PHANTOM, EntityType.VEX, EntityType.WITHER);
 
     private Melee() {
     }

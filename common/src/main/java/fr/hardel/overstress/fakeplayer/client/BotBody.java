@@ -12,7 +12,7 @@ import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Input;
@@ -33,7 +33,7 @@ final class BotBody {
     private static final Input FORWARD = new Input(true, false, false, false, false, false, false);
     private static final double STEP_REACH = 0.5 + ClientTerrain.HALF_WIDTH;
     private static final double DROP_REACH = 0.5 - ClientTerrain.HALF_WIDTH;
-    private static final double EYE_HEIGHT = EntityTypes.PLAYER.getDimensions().eyeHeight();
+    private static final double EYE_HEIGHT = EntityType.PLAYER.getDimensions().eyeHeight();
 
     private boolean placed;
     private double x;

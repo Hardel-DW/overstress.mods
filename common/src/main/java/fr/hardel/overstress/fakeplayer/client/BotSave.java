@@ -15,7 +15,7 @@ import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.entity.DropChances;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityEquipment;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -77,7 +77,7 @@ record BotSave(Vec3 position, float yRot, BotStanding standing) {
         zombie.putString(DEATH_LOOT_TABLE, LOOTLESS);
         zombie.put(Mob.TAG_DROP_CHANCES, DropChances.CODEC.encodeStart(NbtOps.INSTANCE, NO_DROPS).getOrThrow());
         ItemStack eggs = new ItemStack(Items.ZOMBIE_SPAWN_EGG, Items.ZOMBIE_SPAWN_EGG.getDefaultMaxStackSize());
-        eggs.set(DataComponents.ENTITY_DATA, TypedEntityData.of(EntityTypes.ZOMBIE, zombie));
+        eggs.set(DataComponents.ENTITY_DATA, TypedEntityData.of(EntityType.ZOMBIE, zombie));
         return eggs;
     }
 
