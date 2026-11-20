@@ -3,8 +3,10 @@ package fr.hardel.overstress.fakeplayer.client;
 import com.google.common.hash.HashCode;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.HashedPatchMap;
@@ -31,6 +33,8 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Consumable;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -95,9 +99,22 @@ public final class BotHands {
     private float progress(BlockState state) {
         float hardness = state.getDestroySpeed(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
         ItemStack tool = inventory.selectedItem();
-        float speed = tool.getDestroySpeed(state) / (body.onGround() ? 1 : AIRBORNE_MINING_DIVISOR);
+        float swing = tool.getDestroySpeed(state);
+        float speed = (swing > 1 ? swing + efficiency(tool) : swing) / (body.onGround() ? 1 : AIRBORNE_MINING_DIVISOR);
         boolean correctTool = !state.requiresCorrectToolForDrops() || tool.isCorrectToolForDrops(state);
         return hardness < 0 ? 0 : speed / hardness / (correctTool ? CORRECT_TOOL_DIVISOR : WRONG_TOOL_DIVISOR);
+    }
+
+    /** What the efficiency of the tool adds to its speed, as the server counts it: the square of its level, plus one. */
+    private static float efficiency(ItemStack tool) {
+        float bonus = 0;
+        for (Object2IntMap.Entry<Holder<Enchantment>> enchantment : tool.getEnchantments().entrySet()) {
+            if (enchantment.getKey().is(Enchantments.EFFICIENCY)) {
+                bonus = enchantment.getIntValue() * enchantment.getIntValue() + 1;
+            }
+        }
+
+        return bonus;
     }
 
     public void select(int hotbarIndex) {

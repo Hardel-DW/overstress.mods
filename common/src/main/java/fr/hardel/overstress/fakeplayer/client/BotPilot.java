@@ -14,6 +14,7 @@ public final class BotPilot {
     private boolean flying;
     private boolean looking;
     private @Nullable Vec3 guide;
+    private @Nullable Vec3 hover;
     private double heading;
     private double speed;
     private int altitude;
@@ -54,6 +55,12 @@ public final class BotPilot {
     /** This tick the bot walks to a foothold the server chose, without its own picture of the ground. */
     public void stepTo(Vec3 foot, double speed) {
         this.guide = foot;
+        this.speed = speed;
+    }
+
+    /** This tick the bot glides straight to a point, as a player allowed to fly does. */
+    public void hoverTo(Vec3 point, double speed) {
+        this.hover = point;
         this.speed = speed;
     }
 
@@ -106,6 +113,7 @@ public final class BotPilot {
         flying = false;
         looking = false;
         guide = null;
+        hover = null;
         speed = 0;
     }
 
@@ -119,6 +127,10 @@ public final class BotPilot {
 
     @Nullable Vec3 guide() {
         return guide;
+    }
+
+    @Nullable Vec3 hover() {
+        return hover;
     }
 
     double heading() {

@@ -1,5 +1,7 @@
 package fr.hardel.overstress.fakeplayer;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
@@ -19,6 +21,8 @@ public final class BotState {
     public int stall;
     public long shaved = Long.MAX_VALUE;
     public @Nullable BlockPos home;
+    public @Nullable BlockPos lode;
+    public final LongSet refused = new LongOpenHashSet();
     public @Nullable ResourceKey<Level> dimension;
     public boolean outside;
     public int trip;

@@ -42,6 +42,9 @@ A few things to note:
 | `overstress:gateway` | Reaches the End like `overstress:end`, then hops through the end gateways. The server kills the dragon and, ten seconds after each arrival, places the bot in the nearest loaded gateway, on the main island or next to where it arrived on the outer islands. |
 | `overstress:pvp` | Mortal. Wears its armor through inventory clicks, holds its sword, chases the nearest player or monster it sees and hits it when charged, eats when hungry. When it dies it respawns at once and says gg. |
 | `overstress:churn` | Glides with an elytra at Y 350 and 36 blocks/s, 450 blocks along its heading, then 450 blocks back, in a loop. Loads and unloads the same chunks over and over. |
+| `overstress:xray` | A cheater to test a detection against, never drawn at random. The server tells it where the nearest diamond ore is in the chunks around. Under the sky it is put on the ore, in a pocket cleared for it; underground it flies one cell at a time along the axis with the most left to cover, breaks what fills that cell, and breaks the ore once next to it. It joins invulnerable, is allowed to fly, and gets an unbreakable netherite pickaxe with efficiency 10. It passes through liquids, gives up an ore behind a block that cannot be broken, and tunnels ahead when no ore is around. Every break is a real packet. |
+| `overstress:killaura` | A cheater to test a detection against, never drawn at random. Walks to the nearest player or monster with its back turned to it, and hits it the tick its attack is charged, without ever aiming. |
+| `overstress:reach` | A cheater to test a detection against, never drawn at random. Aims as a player does, and hits from 5.5 blocks, further than a player can and under the distance at which the server drops the hit. |
 | `overstress:random` | Runs another scenario for a minute, then draws a new one. |
 
 ## Simulations

@@ -7,11 +7,12 @@ import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
 
 final class Melee {
-    private static final double REACH = Attributes.ENTITY_INTERACTION_RANGE.value().getDefaultValue();
+    static final double REACH = Attributes.ENTITY_INTERACTION_RANGE.value().getDefaultValue();
     private static final int PATIENCE_TICKS = 60;
     private static final double PROGRESS = 2;
     private static final Set<EntityType<?>> AIRBORNE = Set.of(EntityType.ALLAY, EntityType.BAT, EntityType.BEE, EntityType.BLAZE, EntityType.BREEZE, EntityType.ENDER_DRAGON,
@@ -28,7 +29,8 @@ final class Melee {
         pilot.inventory().hotbar(item -> item.is(ItemTags.SWORDS)).ifPresent(pilot.hands()::select);
     }
 
-    static void engage(BotPilot pilot, BotState state, SeenEntity target, double speed) {
+    /** The bot hits from {@code reach} while it looks at {@code gaze}: a player aims at its target and hits within its own reach. */
+    static void engage(BotPilot pilot, BotState state, SeenEntity target, double speed, double reach, Vec3 gaze) {
         double distance = Math.sqrt(target.box().distanceToSqr(pilot.eye()));
         if (state.quarry != target.id()) {
             state.quarry = target.id();
@@ -49,8 +51,8 @@ final class Melee {
             return;
         }
 
-        pilot.look(target.box().getCenter());
-        if (distance <= REACH) {
+        pilot.look(gaze);
+        if (distance <= reach) {
             pilot.hands().attack(target);
             return;
         }

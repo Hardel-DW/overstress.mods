@@ -20,7 +20,7 @@ public final class FightScenario implements BotScenario {
         SeenEntity target = pilot.entities().nearest(pilot.position(), AABB.ofSize(pilot.position(), SIGHT_WIDTH, SIGHT_HEIGHT, SIGHT_WIDTH),
             entity -> entity.type().getCategory() != MobCategory.MISC && Melee.pursuable(pilot, state, entity));
         if (target != null) {
-            Melee.engage(pilot, state, target, SPEED);
+            Melee.engage(pilot, state, target, SPEED, Melee.REACH, target.box().getCenter());
             return;
         }
 
