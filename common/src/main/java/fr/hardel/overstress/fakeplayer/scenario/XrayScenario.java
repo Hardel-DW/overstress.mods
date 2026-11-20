@@ -11,7 +11,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockItemTags;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Unit;
@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 
 /** A cheater to test a detection against: the server tells it where the nearest diamond ore hides, and it tunnels straight to it. */
 public final class XrayScenario implements BotScenario {
-    private static final TagKey<Block> DIAMOND_ORES = BlockItemTags.DIAMOND_ORES.block();
+    private static final TagKey<Block> DIAMOND_ORES = BlockTags.DIAMOND_ORES;
     private static final double SPEED = 0.25;
     private static final int STALL_TICKS = 100;
     private static final double ARRIVED = 1.0E-4;
