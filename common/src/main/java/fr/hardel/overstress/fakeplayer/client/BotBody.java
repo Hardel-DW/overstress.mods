@@ -142,6 +142,12 @@ final class BotBody {
             return;
         }
 
+        Vec3 hover = pilot.hover();
+        if (hover != null) {
+            glide(hover, pilot);
+            return;
+        }
+
         OptionalInt roof = terrain.height(Mth.floor(x), Mth.floor(z));
         if (roof.isPresent() && y < roof.getAsInt() - STEP_HEIGHT) {
             verticalSpeed = 0;
@@ -241,6 +247,28 @@ final class BotBody {
         input = stride > 0 ? FORWARD : Input.EMPTY;
         if (stride > 0 && !pilot.looking()) {
             yRot = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90;
+        }
+    }
+
+    /** A flying bot is in the air and says so: it mines as slowly as the server counts for a player off the ground. */
+    private void glide(Vec3 point, BotPilot pilot) {
+        Vec3 path = point.subtract(x, y, z);
+        double distance = path.length();
+        double stride = Math.min(pilot.speed(), distance);
+        if (stride > 0) {
+            x += path.x / distance * stride;
+            y += path.y / distance * stride;
+            z += path.z / distance * stride;
+        }
+
+        onGround = false;
+        verticalSpeed = 0;
+        horizontalCollision = false;
+        stuck = false;
+        fallFlying = false;
+        input = stride > 0 ? FORWARD : Input.EMPTY;
+        if (stride > 0 && !pilot.looking()) {
+            yRot = (float) Math.toDegrees(Math.atan2(path.z, path.x)) - 90;
         }
     }
 
